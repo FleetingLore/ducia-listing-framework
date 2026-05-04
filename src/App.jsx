@@ -4,15 +4,15 @@ import DocPage from "./pages/DocPage"
 import AdminPage from "./pages/AdminPage"
 import { useAdmin } from "./hooks/useAdmin"
 import { useCats } from "./hooks/useCats"
-import { useDoc } from "./hooks/useDoc"
 import { useUpload } from "./hooks/useUpload"
 import { downloadDoc } from "./utils/download"
+import { getCachedDoc, prefetchDoc } from "./utils/prefetch"
 
 function App() {
   const [view, setView] = useState("loading")
   const { isAdmin, loading: adminLoading, createSession } = useAdmin()
   const { cats, siteName, loading: catsLoading, loadCats } = useCats()
-  const { currentDoc, loading: docLoading, fetchDoc, toggleDeprecated, deleteDoc } = useDoc(loadCats)
+  const [currentDoc, setCurrentDoc] = useState(null)
   const { upload } = useUpload(loadCats)
 
   useEffect(() => {
@@ -23,31 +23,97 @@ function App() {
       setView("admin")
     } else if (path.startsWith("/listing/lib/")) {
       const id = path.split("/").pop()
-      fetchDoc(id, () => location.href = "/")
+      loadDocWithCache(id)
+    }
+  }, [])
+
+  const loadDocWithCache = async (id) => {
+    // 先检查缓存
+    let doc = getCachedDoc(id)
+    if (doc) {
+      setCurrentDoc(doc)
       setView("doc")
+      return
+    }
+    
+    // 创建一个空文档先显示
+    setCurrentDoc({ id, title: '...', content: '', created_at: Date.now(), deprecated: false })
+    setView("doc")
+    
+    // 异步加载内容
+    try {
+      const res = await fetch(`/api/cats/${id}`)
+      const data = await res.json()
+      if (data.success) {
+        setCurrentDoc(data.data)
+      } else {
+        goHome()
+      }
+    } catch (err) {
+      goHome()
+    }
+  }
+
+  const loadCatsAndPrefetch = async () => {
+    const res = await fetch("/api/cats")
+    const data = await res.json()
+    if (data.success) {
+      // 预加载前 5 个文档
+      const topDocs = data.data.slice(0, 5)
+      topDocs.forEach(doc => {
+        prefetchDoc(doc.id)
+      })
+    }
+  }
+
+  useEffect(() => {
+    if (view === "listing") {
+      loadCatsAndPrefetch()
+    }
+  }, [view])
+
+  useEffect(() => {
+    if (view === "listing") {
+      setView("listing")
     }
   }, [])
 
   const goHome = () => location.href = "/"
   const goAdmin = () => location.href = "/listing/lib/0"
+  const handleAdminSuccess = (token) => { createSession(token); goHome() }
 
-  if (adminLoading || (view === "listing" && catsLoading)) return <div>加载中...</div>
-  if (view === "admin") return <AdminPage onSuccess={(token) => createSession(token)} />
+  if (adminLoading || (view === "listing" && catsLoading)) {
+    return <div></div>
+  }
+  if (view === "admin") {
+    return <AdminPage onSuccess={handleAdminSuccess} />
+  }
   if (view === "listing") {
-    return <Listing siteName={siteName} cats={cats} isAdmin={isAdmin} onUpload={upload} onAdminClick={goAdmin} />
+    return <Listing siteName={siteName} cats={cats} onUpload={upload} onAdminClick={goAdmin} />
   }
   if (view === "doc" && currentDoc) {
-    return <DocPage 
-      doc={currentDoc} 
-      isAdmin={isAdmin} 
-      onDownload={() => downloadDoc(currentDoc)} 
-      onDeprecate={() => toggleDeprecated(currentDoc.id)} 
-      onDelete={() => deleteDoc(currentDoc.id).then(goHome)} 
-      onHome={goHome} 
-    />
+    return (
+      <DocPage 
+        doc={currentDoc} 
+        isAdmin={isAdmin} 
+        onDownload={() => downloadDoc(currentDoc)} 
+        onDeprecate={() => {
+          fetch(`/api/cats/${currentDoc.id}/deprecated`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ deprecated: !currentDoc.deprecated })
+          })
+          loadDocWithCache(currentDoc.id)
+          loadCats()
+        }} 
+        onDelete={() => {
+          fetch(`/api/cats/${currentDoc.id}/deleted`, { method: "PUT" }).then(() => goHome())
+        }} 
+        onHome={goHome} 
+      />
+    )
   }
-  if (view === "doc" && docLoading) return <div>加载中...</div>
-  return <div>404</div>
+  return <div></div>
 }
 
 export default App

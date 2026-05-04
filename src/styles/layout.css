@@ -73,3 +73,54 @@ body {
   margin: 0 auto;
   padding: 0;
 }
+
+/* 确保 rust-header 在认证页面也正常显示 */
+.rust-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #eaeef2;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.rust-header-left,
+.rust-header-right {
+  flex-shrink: 0;
+  min-width: 40px;
+}
+
+.rust-header-center {
+  flex: 1;
+  text-align: center;
+}
+
+.rust-header-center span {
+  font-size: 16px;
+  font-weight: 500;
+  color: #1f2328;
+}
+
+.rust-icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+}
+
+.rust-icon-btn:hover {
+  background-color: #f0f0f0;
+}
+
+.rust-icon-btn img {
+  display: block;
+  width: 20px;
+  height: 20px;
+}
