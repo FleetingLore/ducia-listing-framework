@@ -1,5 +1,7 @@
+//! Small binary to run the Ducia listing backend server locally.
 use std::path::PathBuf;
 
+/// Entrypoint for the backend binary; starts the HTTP server.
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     let config_dir = PathBuf::from("../config");

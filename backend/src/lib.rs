@@ -1,3 +1,7 @@
+//! Backend framework for the Ducia listing service.
+//!
+//! This crate provides a lightweight HTTP server and shared application state
+//! used by the frontend to manage and serve documents.
 pub mod config;
 pub mod db;
 pub mod handlers;
@@ -8,11 +12,23 @@ use actix_web::{App, HttpServer, web};
 use std::path::PathBuf;
 use std::sync::Mutex;
 
+/// Shared application state accessible by request handlers.
+///
+/// Holds paths to configuration and document directories used at runtime.
 pub struct AppState {
+    /// Directory where configuration files such as `site.json` and `docs.json` reside.
     pub config_dir: PathBuf,
+    /// Directory where document markdown files are stored.
     pub docs_dir: PathBuf,
 }
 
+/// Start and run the HTTP server for the application.
+///
+/// # Arguments
+///
+/// * `bind_addr` - The address and port to bind (for example `"127.0.0.1:3001"`).
+/// * `config_dir` - Path to the directory containing configuration files.
+/// * `docs_dir` - Path to the directory storing document content files.
 pub async fn run_server(
     bind_addr: &str,
     config_dir: PathBuf,

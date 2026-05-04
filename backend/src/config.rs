@@ -1,6 +1,12 @@
+//! Utilities to load site configuration values from files in a config directory.
+//!
+//! These helpers read JSON files such as `site.json` and `sequence.json`.
 use std::fs;
 use std::path::PathBuf;
 
+/// Load the site name from `site.json` located in `config_dir`.
+///
+/// Returns the `name` field if present; otherwise returns a default site name.
 pub fn load_site_name(config_dir: &PathBuf) -> String {
     let path = config_dir.join("site.json");
     if let Ok(content) = fs::read_to_string(&path) {
@@ -13,6 +19,10 @@ pub fn load_site_name(config_dir: &PathBuf) -> String {
     "25 电科 3 班待办事项清单".to_string()
 }
 
+/// Load the admin sequence from `sequence.json` in `config_dir`.
+///
+/// Returns a vector of `usize` values. If the file is missing or malformed,
+/// an empty vector is returned.
 pub fn load_admin_sequence(config_dir: &PathBuf) -> Vec<usize> {
     let path = config_dir.join("sequence.json");
     if let Ok(content) = fs::read_to_string(&path) {

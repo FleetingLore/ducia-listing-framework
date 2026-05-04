@@ -1,9 +1,9 @@
 [package]
 name = "ducia-listing-framework"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 authors = ["corain"]
-description = "A lightweight documentation server (25 电科 3 班待办事项清单) built with Actix-web."
+description = "A lightweight documentation server built with Actix-web."
 license = "MIT"
 readme = "README.md"
 repository = "https://github.com/FleetingLore/ducia-listing-framework.git"

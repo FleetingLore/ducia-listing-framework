@@ -3,6 +3,9 @@ use std::sync::Mutex;
 use crate::db;
 use crate::AppState;
 
+/// Handler to mark a document as deleted (soft delete).
+///
+/// Sets the `deleted` flag on the document metadata and persists the map.
 pub async fn delete_cat(
     path: web::Path<String>,
     state: web::Data<Mutex<AppState>>,

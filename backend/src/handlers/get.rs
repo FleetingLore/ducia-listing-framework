@@ -3,6 +3,10 @@ use crate::db;
 use actix_web::{HttpResponse, Responder, web};
 use std::sync::Mutex;
 
+/// Handler to fetch a single document by id.
+///
+/// Returns `404` if the document is not found, `410` if it was deleted,
+/// and `200` with document details on success.
 pub async fn get_cat(path: web::Path<String>, state: web::Data<Mutex<AppState>>) -> impl Responder {
     let id = path.into_inner();
     let state = state.lock().unwrap();

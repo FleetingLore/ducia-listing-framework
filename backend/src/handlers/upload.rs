@@ -4,6 +4,10 @@ use crate::models::CreateDocReq;
 use crate::db;
 use crate::AppState;
 
+/// Handler to create a new document from a JSON payload.
+///
+/// Persists the document content and updates the metadata map. Returns the
+/// assigned document id and basic metadata on success.
 pub async fn upload_cat(req: web::Json<CreateDocReq>, state: web::Data<Mutex<AppState>>) -> impl Responder {
     let state = state.lock().unwrap();
     let mut docs_map = db::load_docs_map(&state.config_dir);

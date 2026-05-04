@@ -4,6 +4,10 @@ use crate::db;
 use crate::config;
 use crate::AppState;
 
+/// Handler that returns a list of available documents.
+///
+/// The response JSON includes a `success` flag, site name and an array of
+/// documents (id, title, created_at) excluding deleted or deprecated items.
 pub async fn list_cats(state: web::Data<Mutex<AppState>>) -> impl Responder {
     let state = state.lock().unwrap();
     let docs_map = db::load_docs_map(&state.config_dir);

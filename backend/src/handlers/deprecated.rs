@@ -4,6 +4,10 @@ use crate::models::DeprecatedReq;
 use crate::db;
 use crate::AppState;
 
+/// Handler to mark a document as deprecated or to unmark it.
+///
+/// Expects a boolean `deprecated` field in the JSON payload. Returns `404`
+/// if the document does not exist or has been deleted.
 pub async fn set_deprecated(
     path: web::Path<String>,
     req: web::Json<DeprecatedReq>,
