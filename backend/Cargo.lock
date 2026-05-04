@@ -436,7 +436,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "ducia"
+name = "ducia-listing-framework"
 version = "0.1.0"
 dependencies = [
  "actix-cors",
