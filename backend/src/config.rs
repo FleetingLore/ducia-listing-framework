@@ -10,7 +10,7 @@ pub fn load_site_name(config_dir: &PathBuf) -> String {
             }
         }
     }
-    "Ducia".to_string()
+    "25 电科 3 班待办事项清单".to_string()
 }
 
 pub fn load_admin_sequence(config_dir: &PathBuf) -> Vec<usize> {

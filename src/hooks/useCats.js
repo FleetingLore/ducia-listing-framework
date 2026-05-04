@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 
 export function useCats() {
   const [cats, setCats] = useState([])
-  const [siteName, setSiteName] = useState("Ducia")
+  const [siteName, setSiteName] = useState("25 电科 3 班待办事项清单")
   const [loading, setLoading] = useState(true)
 
   const loadCats = async () => {
