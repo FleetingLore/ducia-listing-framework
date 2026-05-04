@@ -1,42 +1,63 @@
-.header {
-  padding: 12px 20px;
-  border-bottom: 1px solid #d0d7de;
+.rust-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
   background-color: #ffffff;
-  position: sticky;
+  border-bottom: 1px solid #eaeef2;
+  position: fixed;
   top: 0;
-  z-index: 100;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  transition: transform 0.2s ease;
+  transform: translateY(0);
 }
 
-.header-title {
-  font-size: 18px;
-  margin: 0;
+.rust-header.hidden {
+  transform: translateY(-100%);
+}
+
+body {
+  padding-top: 56px;
+  background-color: #ffffff;
+  color: #1f2328;
+}
+
+.rust-header-left,
+.rust-header-right {
+  flex-shrink: 0;
+  min-width: 40px;
+}
+
+.rust-header-center {
   flex: 1;
   text-align: center;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-weight: 500;
 }
 
-.icon-button {
+.rust-header-center span {
+  font-size: 16px;
+  font-weight: 500;
+  color: #1f2328;
+}
+
+.rust-icon-btn {
   background: none;
   border: none;
   cursor: pointer;
   padding: 6px;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: 6px;
 }
 
-.icon-button:hover {
+.rust-icon-btn:hover {
   background-color: #f0f0f0;
 }
 
-.icon-button img {
+.rust-icon-btn img {
+  display: block;
   width: 20px;
   height: 20px;
 }
@@ -51,102 +72,4 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 0;
-}
-
-/* 暗色模式跟随系统 */
-@media (prefers-color-scheme: dark) {
-  .header {
-    background-color: #0d1117;
-    border-bottom-color: #30363d;
-  }
-  .icon-button:hover {
-    background-color: #21262d;
-  }
-  .header-title {
-    color: #e6edf3;
-  }
-}
-
-/* Rust 文档风格的 menu-bar */
-.menu-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 16px;
-  background-color: #f5f5f5;
-  border-bottom: 1px solid #e0e0e0;
-  transition: all 0.2s ease;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.menu-bar.sticky {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 1000;
-  background-color: #fff;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-
-/* 当 sticky 生效时，给页面添加一个占位符防止内容跳动 */
-body:has(.menu-bar.sticky) {
-  padding-top: 0;
-}
-
-/* 为了让内容不被 fixed header 遮挡，添加一个占位元素 */
-.menu-bar-spacer {
-  display: none;
-}
-
-.menu-bar.sticky + .menu-bar-spacer {
-  display: block;
-  height: 50px;
-}
-
-.left-buttons, .right-buttons {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.menu-title {
-  font-size: 16px;
-  font-weight: 500;
-  margin: 0;
-  color: #333;
-  flex: 1;
-  text-align: center;
-}
-
-.menu-bar .icon-button {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 6px 8px;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.menu-bar .icon-button:hover {
-  background-color: #e8e8e8;
-}
-
-@media (prefers-color-scheme: dark) {
-  .menu-bar {
-    background-color: #1e1e1e;
-    border-bottom-color: #333;
-  }
-  .menu-bar.sticky {
-    background-color: #252525;
-  }
-  .menu-title {
-    color: #ddd;
-  }
-  .menu-bar .icon-button:hover {
-    background-color: #333;
-  }
 }
