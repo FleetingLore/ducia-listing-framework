@@ -1,0 +1,35 @@
+name: Build and publish Rust docs to gh-pages
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  publish-docs:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+
+      - name: Build backend docs
+        run: |
+          cd backend
+          cargo doc --no-deps --locked
+
+      - name: Deploy to gh-pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./backend/target/doc
+          publish_branch: gh-pages
