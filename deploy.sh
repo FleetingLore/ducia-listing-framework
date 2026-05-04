@@ -20,19 +20,17 @@ echo "=========================================="
 echo "  部署 ducia-listing-framework 到服务器: $REMOTE_USER@$SERVER"
 echo "=========================================="
 
-# 1. 构建前端
 echo "[1/4] 构建前端..."
 npm run build
 
-# 2. 确定打包内容
 echo "[2/4] 打包文件..."
 EXCLUDE="--exclude=node_modules --exclude=.git --exclude=config/docs.json"
 
 if [ "$DOCS_SYNC" = "docs" ]; then
-    echo "  📁 包含文档目录（将覆盖服务器上的文档）"
+    echo "包含文档目录（将覆盖服务器上的文档）"
     INCLUDE_DOCS="docs"
 else
-    echo "  📁 排除文档目录（保留服务器上的文档）"
+    echo "排除文档目录（保留服务器上的文档）"
     INCLUDE_DOCS=""
 fi
 
@@ -41,57 +39,41 @@ tar -czf "$TMP_TAR" \
     $EXCLUDE \
     dist/ src/ public/ index.html package.json package-lock.json vite.config.js backend/ ${INCLUDE_DOCS}
 
-# 3. 上传
 echo "[3/4] 上传到服务器..."
 scp -P "$SSH_PORT" "$TMP_TAR" "$REMOTE_USER@$SERVER:/tmp/"
 
-# 4. 服务器端更新
 echo "[4/4] 服务器端更新..."
 ssh -p "$SSH_PORT" "$REMOTE_USER@$SERVER" << EOF
 set -euo pipefail
 cd "$REMOTE_PATH"
 
-# 备份当前 docs.json
 cp config/docs.json /tmp/docs.json.bak 2>/dev/null || true
 
-# 解压并覆盖文件
 tar -xzf /tmp/ducia-deploy.tar.gz --overwrite
 
-# 恢复 docs.json（除非是全新部署）
 if [ -f /tmp/docs.json.bak ]; then
     mv /tmp/docs.json.bak config/docs.json
 fi
 
-# 创建必要目录
 mkdir -p docs
 
-# 重新编译后端
 cd backend
 cargo build --release 2>/dev/null || cargo build --release
 
 # Determine binary name from Cargo metadata or Cargo.toml
 BIN_NAME=""
 if command -v cargo >/dev/null 2>&1 && command -v python3 >/dev/null 2>&1; then
-    BIN_NAME=$(cargo metadata --no-deps --format-version 1 | python3 -c 'import sys,json;print(json.load(sys.stdin)["packages"][0]["name"])')
+    BIN_NAME=\$(cargo metadata --no-deps --format-version 1 | python3 -c 'import sys,json;print(json.load(sys.stdin)["packages"][0]["name"])')
 fi
-if [ -z "$BIN_NAME" ]; then
-    BIN_NAME=$(grep -E '^name\s*=\s*"' Cargo.toml | head -n1 | sed -E 's/name\s*=\s*"(.*)"/\1/')
+if [ -z "\$BIN_NAME" ]; then
+    BIN_NAME=\$(grep -E '^name\s*=\s*"' Cargo.toml | head -n1 | sed -E 's/name\s*=\s*"(.*)"/\1/')
 fi
 
 # Stop previous instance if any and start new one
-pkill -f "$BIN_NAME" 2>/dev/null || true
-nohup ./target/release/"$BIN_NAME" > /dev/null 2>&1 &
+pkill -f "\$BIN_NAME" 2>/dev/null || true
+nohup ./target/release/"\$BIN_NAME" > /dev/null 2>&1 &
 
 # 清理临时文件
 rm /tmp/ducia-deploy.tar.gz || true
 
-echo "部署完成！"
 EOF
-
-echo ""
-echo "✅ 部署完成！"
-echo "   访问: http://local.ducia.site"
-echo ""
-echo "💡 提示:" 
-echo "   只更新代码: ./deploy.sh"
-echo "   同时更新文档: ./deploy.sh docs"
