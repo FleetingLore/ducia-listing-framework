@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+set -euo pipefail
+echo "Running pre-push checks: build frontend and backend"
+
+# Build front-end
+if command -v npm >/dev/null 2>&1; then
+  echo "-> Building frontend..."
+  npm run build || { echo "Frontend build failed"; exit 1; }
+else
+  echo "npm not found; skipping frontend build"
+fi
+
+# Build backend
+if [ -d backend ]; then
+  echo "-> Building backend..."
+  (cd backend && cargo build) || { echo "Backend build failed"; exit 1; }
+else
+  echo "backend directory not found; skipping backend build"
+fi
+
+echo "Pre-push checks passed."
+
+# Optional auto-deploy when enabled in scripts/deploy.conf (AUTO_DEPLOY=1)
+if [ "${AUTO_DEPLOY:-0}" = "1" ]; then
+  echo "AUTO_DEPLOY is enabled; running ./deploy.sh"
+  ./deploy.sh || echo "Auto-deploy failed"
+fi

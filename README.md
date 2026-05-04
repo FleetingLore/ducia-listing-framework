@@ -45,3 +45,45 @@
 2. 在 `backend/` 目录下运行 `cargo publish`（需要有效的 crates.io token）。
 
 注意：GitHub 模板的开关需要在 GitHub 界面上手动启用。
+
+## 可复现的开发环境（一键准备）
+
+为了让其他人在他们的设备上更容易复现本项目，我们提供了一组集中化的脚本和配置：
+
+- `Makefile`：常用命令（`make setup`、`make build`、`make docs`、`make deploy` 等）。
+- `scripts/deploy.conf.example`：集中化部署配置（拷贝为 `scripts/deploy.conf` 并修改）。
+- `scripts/setup_dev_env.sh`：检查开发环境所需工具，并在 macOS 下支持 `--install` 自动安装（需 Homebrew）。
+- `rust-toolchain`：固定 Rust toolchain 为 `stable`，保证 Rust 版本一致。
+- `.nvmrc`：推荐 Node 版本（18）。
+- `scripts/git-hooks/install.sh`：将预置的 `pre-push` 钩子安装到本地 `.git/hooks`（构建检查，选项：自动部署通过 `AUTO_DEPLOY=1`）。
+
+使用建议：
+
+1. 复制并编辑部署配置：
+
+	```bash
+	cp scripts/deploy.conf.example scripts/deploy.conf
+	# 编辑 scripts/deploy.conf 中的 SERVER / REMOTE_USER / REMOTE_PATH 等项
+	```
+
+2. 本地环境检查（并在 macOS 下安装缺失项）：
+
+	```bash
+	scripts/setup_dev_env.sh        # 检查
+	scripts/setup_dev_env.sh --install   # macOS 上自动尝试安装（需要 Homebrew）
+	```
+
+3. 安装 git hooks（可选）：
+
+	```bash
+	bash scripts/git-hooks/install.sh
+	```
+
+4. 常用命令：
+
+	- 构建前端：`make build-frontend`
+	- 构建后端：`make build-backend`
+	- 生成并发布文档：`make publish-docs`
+	- 部署到服务器：`make deploy` 或 `./deploy.sh`
+
+这些改动把与部署相关的配置集中到 `scripts/deploy.conf`，并提供 `Makefile` 与安装脚本，便于其他人快速复现开发环境。

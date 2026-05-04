@@ -1,0 +1,18 @@
+# Copy this file to scripts/deploy.conf and edit values for your environment.
+# Example deploy configuration for deploy/sync scripts.
+
+# Remote server IP or hostname
+SERVER="175.178.183.209"
+
+# Remote ssh user (default: root)
+REMOTE_USER="root"
+
+# Remote project path (where repository is on remote)
+REMOTE_PATH="/root/ducia-local"
+
+# SSH port (default: 22)
+SSH_PORT=22
+
+# If set to 1 (or AUTO_DEPLOY=1) some hooks may trigger ./deploy.sh automatically.
+# Use with caution.
+AUTO_DEPLOY=0
