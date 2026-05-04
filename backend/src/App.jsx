@@ -31,23 +31,23 @@ function App() {
   const goHome = () => location.href = "/"
   const goAdmin = () => location.href = "/listing/lib/0"
 
-  if (adminLoading || (view === "listing" && catsLoading)) return <div>加载中...</div>
+  if (adminLoading || (view === "listing" && catsLoading)) return <div></div>
   if (view === "admin") return <AdminPage onSuccess={createSession} />
   if (view === "listing") {
     return <Listing siteName={siteName} cats={cats} onUpload={upload} onAdminClick={goAdmin} />
   }
   if (view === "doc" && currentDoc) {
-    return <DocPage 
-      doc={currentDoc} 
-      isAdmin={isAdmin} 
-      onDownload={() => downloadDoc(currentDoc)} 
-      onDeprecate={() => { toggleDeprecated(currentDoc.id); loadCats() }} 
-      onDelete={() => deleteDoc(currentDoc.id).then(goHome)} 
-      onHome={goHome} 
+    return <DocPage
+      doc={currentDoc}
+      isAdmin={isAdmin}
+      onDownload={() => downloadDoc(currentDoc)}
+      onDeprecate={() => { toggleDeprecated(currentDoc.id); loadCats() }}
+      onDelete={() => deleteDoc(currentDoc.id).then(goHome)}
+      onHome={goHome}
     />
   }
-  if (view === "doc" && docLoading) return <div>加载中...</div>
-  return <div>404</div>
+  if (view === "doc" && docLoading) return <div></div>
+  return <div></div>
 }
 
 export default App
