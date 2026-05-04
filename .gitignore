@@ -39,3 +39,6 @@ coverage/
 *.dylib
 *.rlib
 *.rmeta
+
+# local
+config/
