@@ -1,12 +1,4 @@
 {
-  "next_id": 2,
-  "docs": {
-    "1": {
-      "title": "25 电科 3 班待办事项清单  说明书",
-      "file": "1.md",
-      "created_at": 1777914784464,
-      "deprecated": false,
-      "deleted": false
-    }
-  }
+  "next_id": 1,
+  "docs": {}
 }
