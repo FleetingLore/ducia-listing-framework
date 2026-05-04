@@ -80,6 +80,42 @@
 	- 生成并发布文档：`make publish-docs`
 	- 部署到服务器：`make deploy` 或 `./deploy.sh`
 
+## 本地运行（快速开始）
+
+如果你只是想在本机快速运行并修改代码，下面是最小步骤：
+
+1. 复制本地配置（一次性）：
+
+```bash
+cp scripts/deploy.conf.example scripts/deploy.conf
+```
+
+2. 检查并安装依赖（参考 `scripts/setup_dev_env.sh`）：
+
+```bash
+scripts/setup_dev_env.sh
+# (macOS) scripts/setup_dev_env.sh --install
+```
+
+3. 安装前端依赖并构建（或运行开发模式）：
+
+```bash
+npm install
+# 运行开发服务器（前端和后端同时启动）
+./scripts/run-dev.sh
+# 停止后端（如果需要）
+./scripts/stop-dev.sh
+```
+
+4. 创建本地配置和日志目录（可选）：
+
+```bash
+./scripts/init_local.sh
+```
+
+说明：`./scripts/run-dev.sh` 会在后台以 `cargo run` 启动后端（日志保存在 `logs/backend.log`），并在前台运行 `npm run dev`，方便你在浏览器实时预览更改。
+
+
 ## 在 GitHub Actions 中自动发布（可选）
 
 我们提供了 CI 工作流来在你 `push` 到 `main` 时部署到服务器、在发布 tag/release 时将 crate 发布到 crates.io，以及将 rustdoc 发布到 `gh-pages`：
