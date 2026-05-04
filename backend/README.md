@@ -1,6 +1,6 @@
-# Ducia (backend)
+# ducia-listing-framework (backend)
 
-Ducia 是一个使用 Rust + Actix-web 编写的轻量级文档服务器后端。
+`ducia-listing-framework` 是一个使用 Rust + Actix-web 编写的轻量级文档服务器后端。
 
 快速开始
 

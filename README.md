@@ -1,4 +1,4 @@
-# Ducia — Fullstack Docs Template
+# ducia-listing-framework — Fullstack Docs Template
 
 这是一个包含 Rust 后端（Actix-web）和前端（Vite + React）的示例工程，已准备为 GitHub 模板仓库与可发布的 Rust crate（后端）使用。
 
