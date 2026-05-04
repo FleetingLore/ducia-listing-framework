@@ -3,29 +3,48 @@ import React, { useState, useEffect, useRef } from 'react'
 export default function DocHeader({ title, isAdmin, onHome, onDownload }) {
   const [isVisible, setIsVisible] = useState(true)
   const lastScrollYRef = useRef(0)
+  const animationFrameRef = useRef(null)
 
   useEffect(() => {
     const handleScroll = () => {
-      const currentScrollY = window.scrollY
-      const lastScrollY = lastScrollYRef.current
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current)
+      }
       
-      if (currentScrollY <= 10) {
-        setIsVisible(true)
+      animationFrameRef.current = requestAnimationFrame(() => {
+        const currentScrollY = window.scrollY
+        const lastScrollY = lastScrollYRef.current
+        
+        if (currentScrollY <= 10) {
+          setIsVisible(true)
+          lastScrollYRef.current = currentScrollY
+          return
+        }
+        
+        const scrollDelta = currentScrollY - lastScrollY
+        
+        if (Math.abs(scrollDelta) < 20) {
+          lastScrollYRef.current = currentScrollY
+          return
+        }
+        
+        if (scrollDelta < 0) {
+          setIsVisible(true)
+        } else if (scrollDelta > 0) {
+          setIsVisible(false)
+        }
+        
         lastScrollYRef.current = currentScrollY
-        return
-      }
-      
-      if (currentScrollY < lastScrollY) {
-        setIsVisible(true)
-      } else if (currentScrollY > lastScrollY) {
-        setIsVisible(false)
-      }
-      
-      lastScrollYRef.current = currentScrollY
+      })
     }
 
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current)
+      }
+    }
   }, [])
 
   const iconSrc = isAdmin ? '/icons/user.svg' : '/icons/home.svg'

@@ -3,34 +3,53 @@ import React, { useState, useEffect, useRef } from 'react'
 export default function Header({ siteName, isAdmin, onAdminClick, onUpload }) {
   const [isVisible, setIsVisible] = useState(true)
   const lastScrollYRef = useRef(0)
+  const animationFrameRef = useRef(null)
 
   useEffect(() => {
     const handleScroll = () => {
-      const currentScrollY = window.scrollY
-      const lastScrollY = lastScrollYRef.current
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current)
+      }
       
-      // 在顶部时始终显示
-      if (currentScrollY <= 10) {
-        setIsVisible(true)
+      animationFrameRef.current = requestAnimationFrame(() => {
+        const currentScrollY = window.scrollY
+        const lastScrollY = lastScrollYRef.current
+        
+        // 在顶部时始终显示
+        if (currentScrollY <= 10) {
+          setIsVisible(true)
+          lastScrollYRef.current = currentScrollY
+          return
+        }
+        
+        // 滚动阈值：需要滚动超过 30px 才触发
+        const scrollDelta = currentScrollY - lastScrollY
+        
+        if (Math.abs(scrollDelta) < 20) {
+          // 滚动距离太小，不改变状态
+          lastScrollYRef.current = currentScrollY
+          return
+        }
+        
+        if (scrollDelta < 0) {
+          // 向上滚动，显示
+          setIsVisible(true)
+        } else if (scrollDelta > 0) {
+          // 向下滚动，隐藏
+          setIsVisible(false)
+        }
+        
         lastScrollYRef.current = currentScrollY
-        return
-      }
-      
-      // 只有向上滚动时才显示
-      if (currentScrollY < lastScrollY) {
-        setIsVisible(true)
-      } 
-      // 只有向下滚动时才隐藏
-      else if (currentScrollY > lastScrollY) {
-        setIsVisible(false)
-      }
-      // 停止滚动时不改变状态
-      
-      lastScrollYRef.current = currentScrollY
+      })
     }
 
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current)
+      }
+    }
   }, [])
 
   const iconSrc = isAdmin ? '/icons/user.svg' : '/icons/home.svg'

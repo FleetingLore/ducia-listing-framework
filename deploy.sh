@@ -25,9 +25,9 @@ echo "[1/5] 构建前端..."
 rm -rf dist
 npm run build
 
-# 2. 打包
+# 2. 打包（包含所有 config，排除 docs.json）
 echo "[2/5] 打包文件..."
-EXCLUDE="--exclude=node_modules --exclude=.git --exclude=docs --exclude=config/docs.json"
+EXCLUDE="--exclude=node_modules --exclude=.git --exclude=config/docs.json"
 
 if [ "$DOCS_SYNC" = "docs" ]; then
     echo "  📁 包含文档目录（将覆盖服务器文档）"
@@ -40,7 +40,7 @@ fi
 TMP_TAR="/tmp/ducia-deploy.tar.gz"
 tar -czf "$TMP_TAR" \
     $EXCLUDE \
-    dist/ src/ public/ index.html package.json package-lock.json vite.config.js backend/ config/site.json config/settings.json config/sequence.json $TAR_EXTRA
+    dist/ src/ public/ index.html package.json package-lock.json vite.config.js backend/ config/ $TAR_EXTRA
 
 # 3. 上传
 echo "[3/5] 上传到服务器..."
@@ -55,12 +55,12 @@ ssh -p "$SSH_PORT" "$REMOTE_USER@$SERVER" << 'ENDSSH'
     
     cd "$REMOTE_PATH"
     
-    # 备份 docs.json
+    # 备份 docs.json（用户数据）
     if [ -f config/docs.json ]; then
         cp config/docs.json /tmp/docs.json.bak
     fi
     
-    # 解压
+    # 解压（会覆盖 config 目录下的所有文件除了 docs.json）
     tar -xzf /tmp/ducia-deploy.tar.gz --overwrite
     
     # 恢复 docs.json
@@ -84,7 +84,6 @@ ssh -p "$SSH_PORT" "$REMOTE_USER@$SERVER" << 'ENDSSH'
     nohup ./target/release/"$BIN_NAME" > /tmp/ducia.log 2>&1 &
     
     rm -f /tmp/ducia-deploy.tar.gz
-    rm -f /tmp/docs.json.bak
     
     echo "  后端已启动"
 ENDSSH
