@@ -4,31 +4,35 @@
 <a href=#4 id=4 data-nosnippet>4</a><span class="kw">use </span><span class="kw">crate</span>::db;
 <a href=#5 id=5 data-nosnippet>5</a><span class="kw">use </span><span class="kw">crate</span>::AppState;
 <a href=#6 id=6 data-nosnippet>6</a>
-<a href=#7 id=7 data-nosnippet>7</a><span class="kw">pub async fn </span>upload_cat(req: web::Json&lt;CreateDocReq&gt;, state: web::Data&lt;Mutex&lt;AppState&gt;&gt;) -&gt; <span class="kw">impl </span>Responder {
-<a href=#8 id=8 data-nosnippet>8</a>    <span class="kw">let </span>state = state.lock().unwrap();
-<a href=#9 id=9 data-nosnippet>9</a>    <span class="kw">let </span><span class="kw-2">mut </span>docs_map = db::load_docs_map(<span class="kw-2">&amp;</span>state.config_dir);
-<a href=#10 id=10 data-nosnippet>10</a>    <span class="kw">let </span>new_id = docs_map.next_id;
-<a href=#11 id=11 data-nosnippet>11</a>    <span class="kw">let </span>filename = <span class="macro">format!</span>(<span class="string">"{}.md"</span>, new_id);
-<a href=#12 id=12 data-nosnippet>12</a>    
-<a href=#13 id=13 data-nosnippet>13</a>    <span class="kw">let _ </span>= db::save_doc_content(<span class="kw-2">&amp;</span>state.docs_dir, <span class="kw-2">&amp;</span>filename, <span class="kw-2">&amp;</span>req.content);
-<a href=#14 id=14 data-nosnippet>14</a>    
-<a href=#15 id=15 data-nosnippet>15</a>    docs_map.docs.insert(new_id.to_string(), <span class="kw">crate</span>::models::DocMeta {
-<a href=#16 id=16 data-nosnippet>16</a>        title: req.title.clone(),
-<a href=#17 id=17 data-nosnippet>17</a>        file: filename,
-<a href=#18 id=18 data-nosnippet>18</a>        created_at: db::now_ms(),
-<a href=#19 id=19 data-nosnippet>19</a>        deprecated: <span class="bool-val">false</span>,
-<a href=#20 id=20 data-nosnippet>20</a>        deleted: <span class="bool-val">false</span>,
-<a href=#21 id=21 data-nosnippet>21</a>    });
-<a href=#22 id=22 data-nosnippet>22</a>    docs_map.next_id = new_id + <span class="number">1</span>;
-<a href=#23 id=23 data-nosnippet>23</a>    <span class="kw">let _ </span>= db::save_docs_map(<span class="kw-2">&amp;</span>state.config_dir, <span class="kw-2">&amp;</span>docs_map);
-<a href=#24 id=24 data-nosnippet>24</a>    
-<a href=#25 id=25 data-nosnippet>25</a>    HttpResponse::Ok().json(<span class="macro">serde_json::json!</span>({
-<a href=#26 id=26 data-nosnippet>26</a>        <span class="string">"success"</span>: <span class="bool-val">true</span>,
-<a href=#27 id=27 data-nosnippet>27</a>        <span class="string">"data"</span>: {
-<a href=#28 id=28 data-nosnippet>28</a>            <span class="string">"id"</span>: new_id.to_string(),
-<a href=#29 id=29 data-nosnippet>29</a>            <span class="string">"title"</span>: req.title,
-<a href=#30 id=30 data-nosnippet>30</a>            <span class="string">"created_at"</span>: db::now_ms(),
-<a href=#31 id=31 data-nosnippet>31</a>        }
-<a href=#32 id=32 data-nosnippet>32</a>    }))
-<a href=#33 id=33 data-nosnippet>33</a>}
+<a href=#7 id=7 data-nosnippet>7</a><span class="doccomment">/// Handler to create a new document from a JSON payload.
+<a href=#8 id=8 data-nosnippet>8</a>///
+<a href=#9 id=9 data-nosnippet>9</a>/// Persists the document content and updates the metadata map. Returns the
+<a href=#10 id=10 data-nosnippet>10</a>/// assigned document id and basic metadata on success.
+<a href=#11 id=11 data-nosnippet>11</a></span><span class="kw">pub async fn </span>upload_cat(req: web::Json&lt;CreateDocReq&gt;, state: web::Data&lt;Mutex&lt;AppState&gt;&gt;) -&gt; <span class="kw">impl </span>Responder {
+<a href=#12 id=12 data-nosnippet>12</a>    <span class="kw">let </span>state = state.lock().unwrap();
+<a href=#13 id=13 data-nosnippet>13</a>    <span class="kw">let </span><span class="kw-2">mut </span>docs_map = db::load_docs_map(<span class="kw-2">&amp;</span>state.config_dir);
+<a href=#14 id=14 data-nosnippet>14</a>    <span class="kw">let </span>new_id = docs_map.next_id;
+<a href=#15 id=15 data-nosnippet>15</a>    <span class="kw">let </span>filename = <span class="macro">format!</span>(<span class="string">"{}.md"</span>, new_id);
+<a href=#16 id=16 data-nosnippet>16</a>    
+<a href=#17 id=17 data-nosnippet>17</a>    <span class="kw">let _ </span>= db::save_doc_content(<span class="kw-2">&amp;</span>state.docs_dir, <span class="kw-2">&amp;</span>filename, <span class="kw-2">&amp;</span>req.content);
+<a href=#18 id=18 data-nosnippet>18</a>    
+<a href=#19 id=19 data-nosnippet>19</a>    docs_map.docs.insert(new_id.to_string(), <span class="kw">crate</span>::models::DocMeta {
+<a href=#20 id=20 data-nosnippet>20</a>        title: req.title.clone(),
+<a href=#21 id=21 data-nosnippet>21</a>        file: filename,
+<a href=#22 id=22 data-nosnippet>22</a>        created_at: db::now_ms(),
+<a href=#23 id=23 data-nosnippet>23</a>        deprecated: <span class="bool-val">false</span>,
+<a href=#24 id=24 data-nosnippet>24</a>        deleted: <span class="bool-val">false</span>,
+<a href=#25 id=25 data-nosnippet>25</a>    });
+<a href=#26 id=26 data-nosnippet>26</a>    docs_map.next_id = new_id + <span class="number">1</span>;
+<a href=#27 id=27 data-nosnippet>27</a>    <span class="kw">let _ </span>= db::save_docs_map(<span class="kw-2">&amp;</span>state.config_dir, <span class="kw-2">&amp;</span>docs_map);
+<a href=#28 id=28 data-nosnippet>28</a>    
+<a href=#29 id=29 data-nosnippet>29</a>    HttpResponse::Ok().json(<span class="macro">serde_json::json!</span>({
+<a href=#30 id=30 data-nosnippet>30</a>        <span class="string">"success"</span>: <span class="bool-val">true</span>,
+<a href=#31 id=31 data-nosnippet>31</a>        <span class="string">"data"</span>: {
+<a href=#32 id=32 data-nosnippet>32</a>            <span class="string">"id"</span>: new_id.to_string(),
+<a href=#33 id=33 data-nosnippet>33</a>            <span class="string">"title"</span>: req.title,
+<a href=#34 id=34 data-nosnippet>34</a>            <span class="string">"created_at"</span>: db::now_ms(),
+<a href=#35 id=35 data-nosnippet>35</a>        }
+<a href=#36 id=36 data-nosnippet>36</a>    }))
+<a href=#37 id=37 data-nosnippet>37</a>}
 </code></pre></div></section></main></body></html>
