@@ -40,3 +40,63 @@
 .admin-block-success {
   background-color: #3fb950;
 }
+.admin-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 20px;
+  border-bottom: 1px solid #eaeef2;
+  background: #ffffff;
+}
+
+.admin-back-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.admin-back-btn img {
+  width: 20px;
+  height: 20px;
+}
+
+.admin-title {
+  font-size: 16px;
+  font-weight: 500;
+  margin: 0;
+  color: #1f2328;
+}
+
+.admin-placeholder {
+  width: 28px;
+}
+
+.admin-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 50px);
+}
+
+.admin-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 48px);
+  gap: 16px;
+}
+
+.admin-block {
+  width: 48px;
+  height: 48px;
+  border: 1px solid #d0d7de;
+  border-radius: 0;
+  cursor: pointer;
+  transition: background-color 0.1s;
+}
+
+.admin-block:hover {
+  border-color: #0969da;
+}

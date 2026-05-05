@@ -117,3 +117,8 @@ function App() {
 }
 
 export default App
+// 修改 handleAdminSuccess
+const handleAdminSuccess = (token) => { 
+  createSession(token)
+  // 不跳转，停留在当前页面
+}

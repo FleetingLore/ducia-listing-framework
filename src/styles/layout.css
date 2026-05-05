@@ -124,3 +124,134 @@ body {
   width: 20px;
   height: 20px;
 }
+
+/* Rust 文档风格的 menu-bar */
+.menu-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #eaeef2;
+  width: 100%;
+  box-sizing: border-box;
+  transition: transform 0.3s ease, box-shadow 0.2s ease;
+  position: relative;
+  top: 0;
+}
+
+.menu-bar.sticky {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background-color: #ffffff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.menu-bar.hidden {
+  transform: translateY(-100%);
+}
+
+/* 当 sticky 生效时，给页面添加 padding-top 防止内容被遮挡 */
+.menu-bar.sticky + * {
+  margin-top: 0;
+}
+
+body {
+  padding-top: 0;
+}
+
+.left-buttons, .right-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.menu-title {
+  font-size: 16px;
+  font-weight: 500;
+  margin: 0;
+  color: #1f2328;
+  flex: 1;
+  text-align: center;
+}
+
+.menu-bar .icon-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.menu-bar .icon-button:hover {
+  background-color: #f0f0f0;
+}
+
+.menu-bar .icon-button img {
+  display: block;
+  width: 20px;
+  height: 20px;
+}
+
+.menu-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #eaeef2;
+  transition: transform 0.2s ease;
+  will-change: transform;
+}
+
+.menu-bar.sticky {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background-color: #ffffff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.left-buttons, .right-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.menu-title {
+  font-size: 16px;
+  font-weight: 500;
+  margin: 0;
+  color: #1f2328;
+  flex: 1;
+  text-align: center;
+}
+
+.menu-bar .icon-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.menu-bar .icon-button:hover {
+  background-color: #f0f0f0;
+}
+
+.menu-bar .icon-button img {
+  display: block;
+  width: 20px;
+  height: 20px;
+}

@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect } from 'react'
 
 export default function AdminPage({ onSuccess }) {
   const [sequence, setSequence] = useState([])
   const [userInput, setUserInput] = useState([])
-  const [toggledBlocks, setToggledBlocks] = useState({})
+  const [clickCounts, setClickCounts] = useState({})
   const [loading, setLoading] = useState(true)
-  const timeoutRef = useRef(null)
 
   useEffect(() => {
     fetch('/api/admin/sequence')
@@ -15,24 +14,11 @@ export default function AdminPage({ onSuccess }) {
         setLoading(false)
       })
       .catch(() => setLoading(false))
-    return () => { if (timeoutRef.current) clearTimeout(timeoutRef.current) }
   }, [])
 
   const handleClick = async (num) => {
-    // 切换方块状态（蓝色/透明）
-    setToggledBlocks(prev => ({
-      ...prev,
-      [num]: !prev[num]
-    }))
-    
-    // 150ms 后自动变回透明
-    if (timeoutRef.current) clearTimeout(timeoutRef.current)
-    timeoutRef.current = setTimeout(() => {
-      setToggledBlocks(prev => ({
-        ...prev,
-        [num]: false
-      }))
-    }, 150)
+    const newCount = (clickCounts[num] || 0) + 1
+    setClickCounts(prev => ({ ...prev, [num]: newCount }))
     
     if (!sequence.length) return
     
@@ -55,21 +41,27 @@ export default function AdminPage({ onSuccess }) {
 
   if (loading) return <div>加载中...</div>
 
-  const getBlockStyle = (num) => ({
-    width: '48px',
-    height: '48px',
-    border: '2px solid #1f2328',
-    backgroundColor: toggledBlocks[num] ? '#0969da' : 'transparent',
-    transition: 'background-color 0.1s',
-    cursor: 'pointer'
-  })
-
-  const blockContainerStyle = {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(2, 48px)',
-    gap: '16px',
-    justifyContent: 'center',
-    alignItems: 'center'
+  const getStyle = (num) => {
+    const count = clickCounts[num] || 0
+    // 未点击：黑边 + 半透明黑
+    if (count === 0) {
+      return {
+        backgroundColor: 'rgba(31, 35, 40, 0.3)',
+        border: '2px solid #1f2328'
+      }
+    }
+    // 奇数次：蓝边 + 半透明蓝
+    if (count % 2 === 1) {
+      return {
+        backgroundColor: 'rgba(144, 223, 223, 0.3)',
+        border: '2px solid #90DFDF'
+      }
+    }
+    // 偶数次：黑边 + 半透明黑
+    return {
+      backgroundColor: 'rgba(31, 35, 40, 0.3)',
+      border: '2px solid #1f2328'
+    }
   }
 
   return (
@@ -84,16 +76,24 @@ export default function AdminPage({ onSuccess }) {
           <span>Configuration</span>
         </div>
         <div className="rust-header-right">
-          {/* 右边空白占位 */}
           <div style={{ width: '40px' }}></div>
         </div>
       </div>
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 'calc(100vh - 56px)' }}>
-        <div style={blockContainerStyle}>
-          <button style={getBlockStyle(2)} onClick={() => handleClick(2)} />
-          <button style={getBlockStyle(1)} onClick={() => handleClick(1)} />
-          <button style={getBlockStyle(3)} onClick={() => handleClick(3)} />
-          <button style={getBlockStyle(4)} onClick={() => handleClick(4)} />
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 60px)', gap: '20px' }}>
+          {[2, 1, 3, 4].map(pos => (
+            <button
+              key={pos}
+              onClick={() => handleClick(pos)}
+              style={{
+                width: '60px',
+                height: '60px',
+                cursor: 'pointer',
+                transition: 'all 0.1s',
+                ...getStyle(pos)
+              }}
+            />
+          ))}
         </div>
       </div>
     </div>
