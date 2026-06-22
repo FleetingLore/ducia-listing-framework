@@ -11,26 +11,37 @@ use std::path::PathBuf;
 
 /// 文件系统存储
 pub struct FsStorage {
-    /// config 目录（存储 docs.json、site.json）
+    /// config 目录（只读配置：site.json）
     config_dir: PathBuf,
+    /// data 目录（读写数据：docs.json）
+    data_dir: PathBuf,
     /// docs 目录（存储 .md 文件）
     docs_dir: PathBuf,
 }
 
 impl FsStorage {
-    pub fn new(config_dir: PathBuf, docs_dir: PathBuf) -> Self {
-        // 确保目录存在
+    pub fn new(config_dir: PathBuf, data_dir: PathBuf, docs_dir: PathBuf) -> Self {
         let _ = std::fs::create_dir_all(&config_dir);
+        let _ = std::fs::create_dir_all(&data_dir);
         let _ = std::fs::create_dir_all(&docs_dir);
+
+        // 迁移：如果 data_dir 中没有 docs.json 但 config_dir 中有，则复制
+        let data_path = data_dir.join("docs.json");
+        let config_path = config_dir.join("docs.json");
+        if !data_path.exists() && config_path.exists() {
+            let _ = std::fs::copy(&config_path, &data_path);
+        }
+
         Self {
             config_dir,
+            data_dir,
             docs_dir,
         }
     }
 
     /// 加载文档索引
     fn load_docs_map(&self) -> DocsMap {
-        let path = self.config_dir.join("docs.json");
+        let path = self.data_dir.join("docs.json");
         std::fs::read_to_string(&path)
             .ok()
             .and_then(|c| serde_json::from_str(&c).ok())
@@ -43,7 +54,7 @@ impl FsStorage {
     /// 保存文档索引
     fn save_docs_map(&self, map: &DocsMap) -> anyhow::Result<()> {
         std::fs::write(
-            self.config_dir.join("docs.json"),
+            self.data_dir.join("docs.json"),
             serde_json::to_string_pretty(map)?,
         )?;
         Ok(())

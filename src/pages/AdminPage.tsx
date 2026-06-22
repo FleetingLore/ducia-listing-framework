@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useI18n } from "../hooks/useI18n";
 import type { SequenceResponse, CreateSessionResponse } from "../types/api";
+import barStyles from "../components/MenuBar.module.css";
 import styles from "./AdminPage.module.css";
 
 interface AdminPageProps {
@@ -71,10 +72,10 @@ export default function AdminPage({ onSuccess }: AdminPageProps) {
 
     return (
         <div>
-            <div className="rust-header">
-                <div className="rust-header-left">
+            <div className={barStyles.bar}>
+                <div className={barStyles.side}>
                     <button
-                        className="rust-icon-btn"
+                        className={barStyles.iconBtn}
                         onClick={() => {
                             window.location.href = "/";
                         }}
@@ -87,11 +88,9 @@ export default function AdminPage({ onSuccess }: AdminPageProps) {
                         />
                     </button>
                 </div>
-                <div className="rust-header-center">
-                    <span>{t("admin.title")}</span>
-                </div>
-                <div className="rust-header-right">
-                    <div style={{ width: "40px" }}></div>
+                <h1 className={barStyles.title}>{t("admin.title")}</h1>
+                <div className={barStyles.side}>
+                    <div style={{ width: "40px" }} />
                 </div>
             </div>
             <div className={styles.wrapper}>

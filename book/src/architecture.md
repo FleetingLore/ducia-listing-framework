@@ -160,7 +160,7 @@ export default defineConfig({
 })
 ```
 
-生产环境下，前后端文件一同打包到 `dist/` 目录，由 actix-web 的静态文件服务统一托管。
+生产环境下，前后端文件一同打包到 `dist/` 目录，由 actix-web 通过 catch-all 路由 `/{tail:.*}` 托管：先尝试匹配精确静态文件，失败则返回 `index.html` 实现 SPA fallback。
 
 ## 服务启动流程
 
@@ -172,5 +172,5 @@ export default defineConfig({
 4. 根据 `config/settings.json` 的 `use_database` 字段选择存储后端
 5. 根据 `config/auth.json` 是否存在选择认证后端（有则 `auth-db`，无则 `auth-simple`）
 6. 通过 `PluginRegistry::new().with_auth(...).with_storage(...)` 组装插件
-7. 创建 `AppState`，注入到 actix-web，绑定 `127.0.0.1:3001`
+7. 创建 `AppState`，注入到 actix-web，绑定 `0.0.0.0:3001`
 8. 注册所有 API 路由，启动 HTTP 服务

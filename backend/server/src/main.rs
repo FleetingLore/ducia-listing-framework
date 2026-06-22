@@ -4,8 +4,7 @@
 //! 通过 config/settings.json 选择存储和认证后端。
 
 use actix_cors::Cors;
-use actix_files as fs;
-use actix_web::{App, HttpServer, web};
+use actix_web::{App, HttpResponse, HttpServer, Responder, web};
 use ducia_auth_db::{AuthConfig, AuthDb};
 use ducia_auth_simple::SimpleAuth;
 use ducia_core::I18nManager;
@@ -51,7 +50,11 @@ async fn main() -> std::io::Result<()> {
         ) as Box<dyn ducia_core::doc::repo::DocRepository>
     } else {
         println!("Using filesystem storage");
-        Box::new(FsStorage::new(config_dir.clone(), docs_dir.clone()))
+        Box::new(FsStorage::new(
+            config_dir.clone(),
+            data_dir.clone(),
+            docs_dir.clone(),
+        ))
     };
 
     // 创建认证插件（优先 auth-db，fallback auth-simple）
@@ -128,12 +131,43 @@ async fn main() -> std::io::Result<()> {
                 "/api/locales/{locale}",
                 web::get().to(handlers::i18n::get_locale_pack),
             )
-            // 生产模式：serve 前端静态文件（dist/ 存在时）
-            .service(fs::Files::new("/", base_dir.join("dist")).index_file("index.html"))
+            // SPA 静态文件 + 路由 fallback：先尝试精确文件，失败返回 index.html
+            .route("/{tail:.*}", web::get().to(spa_fallback))
     })
     .bind("0.0.0.0:3001")?
     .run()
     .await
+}
+
+/// SPA fallback：先尝试返回精确静态文件，失败则返回 index.html
+async fn spa_fallback(req: actix_web::HttpRequest) -> impl Responder {
+    let cwd = std::env::current_dir().unwrap_or_default();
+    let base_dir = find_project_root(&cwd);
+    let dist_dir = base_dir.join("dist");
+    let path = req.path().trim_start_matches('/');
+    let file_path = if path.is_empty() {
+        dist_dir.join("index.html")
+    } else {
+        dist_dir.join(path)
+    };
+
+    // 尝试服务精确文件
+    if file_path.is_file() {
+        if let Ok(data) = tokio::fs::read(&file_path).await {
+            let ct = actix_files::file_extension_to_mime(
+                file_path.extension().and_then(|e| e.to_str()).unwrap_or(""),
+            );
+            return HttpResponse::Ok().content_type(ct).body(data);
+        }
+    }
+
+    // SPA fallback：返回 index.html
+    match tokio::fs::read_to_string(dist_dir.join("index.html")).await {
+        Ok(html) => HttpResponse::Ok()
+            .content_type("text/html; charset=utf-8")
+            .body(html),
+        Err(_) => HttpResponse::NotFound().body("Not Found"),
+    }
 }
 
 /// 向上查找包含 config/ 目录的项目根

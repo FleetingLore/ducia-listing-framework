@@ -397,19 +397,19 @@ curl -s http://127.0.0.1:3001/api/auth/me \
 
 - 路径：`backend/plugins/storage-fs/`
 - 依赖：`ducia-core`、`serde_json`
-- 原理：`config/docs.json` 存储元数据索引，`docs/` 目录存储 `.md` 文件
+- 原理：`data/docs.json` 存储元数据索引，`docs/` 目录存储 `.md` 文件
 
 **数据布局**：
 
 ```
-config/
+data/
   docs.json          ← 文档索引（所有元数据）
 docs/
   1.md               ← id=1 的文档内容
   2.md               ← id=2 的文档内容
 ```
 
-- `config/docs.json`：存储全局索引，包含 `next_id` 自增计数器和 `docs` 映射表
+- `data/docs.json`：存储全局索引，包含 `next_id` 自增计数器和 `docs` 映射表
 - `docs/{id}.md`：每个文档的 Markdown 正文，文件名由 `DocMeta.file` 字段决定
 
 **docs.json 结构示例**：
@@ -544,9 +544,9 @@ SELECT value FROM settings WHERE key = 'site_name';
      "use_database": true
    }
    ```
-2. 重启服务。插件会自动执行 `schema.sql` 建表，并从 `config/docs.json` 导入现有文档元数据
+2. 重启服务。插件会自动执行 `schema.sql` 建表，并从 `data/docs.json` 导入现有文档元数据
 3. 验证迁移结果：通过 API 获取文档列表，确认所有文档可正常访问
-4. 迁移完成后 `config/docs.json` 不再使用（可保留作为备份）
+4. 迁移完成后 `data/docs.json` 不再使用（可保留作为备份）
 
 ## 如何编写一个新插件
 

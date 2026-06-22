@@ -12,7 +12,7 @@ PluginRegistry
     │
     ▼
 StoragePlugin (DocRepository trait)
-    ├── storage-fs ──→ config/docs.json + docs/*.md
+    ├── storage-fs ──→ data/docs.json + docs/*.md
     ├── storage-sqlite ──→ data/ducia.db
     └── 自定义后端
 ```
@@ -70,12 +70,12 @@ pub trait DocRepository: Send + Sync {
 ### 工作原理
 
 ```
-config/docs.json          ← JSON 格式的文档元数据索引
+data/docs.json             ← JSON 格式的文档元数据索引
 docs/1.md                 ← 自增ID命名的 Markdown 文件
 docs/2.md
 ```
 
-- 元数据索引存储在 `config/docs.json`，为内存 `HashMap` 的 JSON 持久化
+- 元数据索引存储在 `data/docs.json`（Docker 部署时 `config/` 为只读挂载）
 - 文档内容以 `.md` 文件形式存储在 `docs/` 目录
 - 每次读写都加载/保存整个索引文件（简单但非原子操作）
 
@@ -96,8 +96,9 @@ docs/2.md
 
 ```rust
 pub struct FsStorage {
-    config_dir: PathBuf,  // config/ 目录路径
-    docs_dir: PathBuf,    // docs/ 目录路径
+    config_dir: PathBuf,  // 只读配置目录（site.json）
+    data_dir: PathBuf,    // 读写数据目录（docs.json）
+    docs_dir: PathBuf,    // 文档内容目录（*.md）
 }
 ```
 
@@ -204,7 +205,7 @@ CREATE TABLE IF NOT EXISTS settings (
 let storage_plugin = if use_db {
     Box::new(SqliteStorage::new(db_path, docs_dir)?) as Box<dyn DocRepository>
 } else {
-    Box::new(FsStorage::new(config_dir, docs_dir))
+    Box::new(FsStorage::new(config_dir, data_dir, docs_dir))
 };
 ```
 
@@ -212,10 +213,10 @@ let storage_plugin = if use_db {
 
 如果已有文件系统存储的数据，迁移步骤：
 
-1. 确保 `config/docs.json` 和 `docs/*.md` 数据完好
+1. 确保 `data/docs.json` 和 `docs/*.md` 数据完好
 2. 设置 `use_database: true`
 3. 重启服务——新创建的文档将存入 SQLite
-4. 旧数据（`config/docs.json`）不会被自动导入，需要手动迁移或通过 API 重新上传
+4. 旧数据（`data/docs.json`）不会被自动导入，需要手动迁移或通过 API 重新上传
 
 ---
 
