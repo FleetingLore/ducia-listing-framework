@@ -1,0 +1,1 @@
+/Users/corain/RustroverProjects/ducia-listing-framework/backend/wasm/target/wasm32-unknown-unknown/release/ducia_wasm.wasm: /Users/corain/RustroverProjects/ducia-listing-framework/backend/wasm/src/lib.rs

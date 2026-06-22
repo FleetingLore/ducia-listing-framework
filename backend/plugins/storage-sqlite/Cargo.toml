@@ -1,0 +1,15 @@
+[package]
+name = "ducia-storage-sqlite"
+version = "0.1.0"
+edition = "2024"
+description = "SQLite storage plugin for ducia"
+license = "MIT"
+
+[dependencies]
+ducia-core = { path = "../../ducia-core" }
+async-trait = "0.1"
+anyhow = "1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+rusqlite = { version = "0.32", features = ["bundled"] }
+tokio = { version = "1", features = ["sync"] }
