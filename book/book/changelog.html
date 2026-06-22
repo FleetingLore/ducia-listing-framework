@@ -35,7 +35,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-c9d4c122.js";
+            window.path_to_searchindex_js = "searchindex-4568314d.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-df4d3453.js"></script>
@@ -191,6 +191,8 @@
 <li><strong>auth-db 认证插件</strong>：基于 JWT + bcrypt 的用户认证，支持注册/登录/Token 刷新，用户数据可存储于文件系统或 SQLite</li>
 <li><strong>storage-sqlite 存储插件</strong>：基于 rusqlite 的 SQLite 文档存储，支持索引、搜索、软删除与弃用标记</li>
 <li><strong>WASM 共享逻辑</strong>：将 Markdown 渲染（pulldown-cmark）和序列码验证逻辑编译为 WebAssembly，前后端共享同一套 Rust 代码</li>
+<li><strong>视图注册表（ViewRegistry）</strong>：页面不再写死为 3 个，通过 URL 模式匹配动态注册</li>
+<li><strong>格式注册表（FormatRegistry）</strong>：Markdown 只是默认注册的格式之一，上传/渲染均通过注册表查找</li>
 <li><strong>配置热切换</strong>：通过 <code>config/settings.json</code> 可在文件存储 ↔ SQLite 存储之间切换，无需重新编译</li>
 <li><strong>动态角色系统</strong>：<code>config/roles.json</code> 定义角色与权限映射，框架不预设 admin/editor/viewer</li>
 </ul>
@@ -318,6 +320,7 @@
         <script src="book-a0b12cfe.js"></script>
 
         <!-- Custom JS scripts -->
+        <script src="mermaid-init-27cb93de.js"></script>
 
 
 

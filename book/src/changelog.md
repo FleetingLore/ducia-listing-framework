@@ -13,6 +13,8 @@
 - **auth-db 认证插件**：基于 JWT + bcrypt 的用户认证，支持注册/登录/Token 刷新，用户数据可存储于文件系统或 SQLite
 - **storage-sqlite 存储插件**：基于 rusqlite 的 SQLite 文档存储，支持索引、搜索、软删除与弃用标记
 - **WASM 共享逻辑**：将 Markdown 渲染（pulldown-cmark）和序列码验证逻辑编译为 WebAssembly，前后端共享同一套 Rust 代码
+- **视图注册表（ViewRegistry）**：页面不再写死为 3 个，通过 URL 模式匹配动态注册
+- **格式注册表（FormatRegistry）**：Markdown 只是默认注册的格式之一，上传/渲染均通过注册表查找
 - **配置热切换**：通过 `config/settings.json` 可在文件存储 ↔ SQLite 存储之间切换，无需重新编译
 - **动态角色系统**：`config/roles.json` 定义角色与权限映射，框架不预设 admin/editor/viewer
 

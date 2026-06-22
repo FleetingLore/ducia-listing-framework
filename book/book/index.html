@@ -35,7 +35,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-c9d4c122.js";
+            window.path_to_searchindex_js = "searchindex-4568314d.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-df4d3453.js"></script>
@@ -207,29 +207,50 @@
 </table>
 </div>
 <h2 id="项目结构"><a class="header" href="#项目结构">项目结构</a></h2>
-<pre><code>ducia-listing-framework/
-├── config/                 # 所有配置文件
-│   ├── auth.json           #   JWT 密钥
-│   ├── roles.json          #   动态角色定义
-│   ├── sequence.json       #   序列码
-│   ├── settings.json       #   功能开关
-│   └── i18n/               #   语言资源文件
-├── backend/
-│   ├── ducia-core/         # 框架核心（trait 定义）
-│   ├── plugins/            # 官方插件
-│   │   ├── auth-simple/    #   序列码认证
-│   │   ├── auth-db/        #   JWT + 数据库认证
-│   │   ├── storage-fs/     #   文件系统存储
-│   │   └── storage-sqlite/ #   SQLite 存储
-│   ├── server/             # 二进制入口
-│   └── wasm/               # WASM 共享逻辑
-├── src/                    # 前端源码
-│   ├── types/              #   TypeScript 类型
-│   ├── hooks/              #   React Hooks
-│   ├── components/         #   UI 组件
-│   └── pages/              #   页面
-└── book/                   # 本书源码
-</code></pre>
+<pre class="mermaid">flowchart TB
+    ROOT["ducia-listing-framework/"]
+
+    ROOT --&gt; CONFIG
+    ROOT --&gt; BACKEND
+    ROOT --&gt; SRC
+    ROOT --&gt; BOOK
+
+    subgraph CONFIG["config/ 所有配置文件"]
+        direction TB
+        cf1["auth.json — JWT 密钥"]
+        cf2["roles.json — 动态角色定义"]
+        cf3["sequence.json — 序列码"]
+        cf4["settings.json — 功能开关"]
+        cf5["i18n/ — 语言资源文件"]
+    end
+
+    subgraph BACKEND["backend/"]
+        direction TB
+        be1["ducia-core/ — 框架核心（trait 定义）"]
+        be2["server/ — 二进制入口"]
+        be3["wasm/ — WASM 共享逻辑"]
+        subgraph PLUGINS["plugins/ 官方插件"]
+            direction LR
+            pl1["auth-simple — 序列码认证"]
+            pl2["auth-db — JWT + 数据库认证"]
+            pl3["storage-fs — 文件系统存储"]
+            pl4["storage-sqlite — SQLite 存储"]
+        end
+    end
+
+    subgraph SRC["src/ 前端源码"]
+        direction LR
+        sr1["types/ — TypeScript 类型"]
+        sr2["hooks/ — React Hooks"]
+        sr3["components/ — UI 组件"]
+        sr4["pages/ — 页面"]
+    end
+
+    subgraph BOOK["book/ 本书源码"]
+        bk1["本书源码"]
+    end
+</pre>
+
 
                     </main>
 
@@ -276,6 +297,7 @@
         <script src="book-a0b12cfe.js"></script>
 
         <!-- Custom JS scripts -->
+        <script src="mermaid-init-27cb93de.js"></script>
 
 
 

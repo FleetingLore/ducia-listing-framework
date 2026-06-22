@@ -35,7 +35,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-c9d4c122.js";
+            window.path_to_searchindex_js = "searchindex-4568314d.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-df4d3453.js"></script>
@@ -276,15 +276,12 @@
 </div>
 <h3 id="继承链解析"><a class="header" href="#继承链解析">继承链解析</a></h3>
 <p>框架在构建用户身份时，递归展开继承链并合并所有权限。以 <code>superadmin</code> 为例：</p>
-<pre><code>superadmin
-  ├── extends admin
-  │     ├── permissions: [doc:delete, user:manage, config:write]
-  │     └── extends editor
-  │           ├── permissions: [doc:write, doc:deprecate]
-  │           └── extends viewer
-  │                 └── permissions: [doc:read]
-  └── permissions: [*]
-</code></pre>
+<pre class="mermaid">flowchart LR
+    superadmin["superadmin&lt;br/&gt;权限: *"] --&gt;|"extends"| admin["admin&lt;br/&gt;权限: doc:delete, user:manage, config:write"]
+    admin --&gt;|"extends"| editor["editor&lt;br/&gt;权限: doc:write, doc:deprecate"]
+    editor --&gt;|"extends"| viewer["viewer&lt;br/&gt;权限: doc:read"]
+</pre>
+
 <p>最终 <code>superadmin</code> 拥有 <code>*</code>（通配全部权限），<code>admin</code> 拥有 <code>doc:read, doc:write, doc:deprecate, doc:delete, user:manage, config:write</code>。</p>
 <hr>
 <h2 id="sequencejson--管理员登录序列"><a class="header" href="#sequencejson--管理员登录序列"><code>sequence.json</code> — 管理员登录序列</a></h2>
@@ -502,6 +499,7 @@
         <script src="book-a0b12cfe.js"></script>
 
         <!-- Custom JS scripts -->
+        <script src="mermaid-init-27cb93de.js"></script>
 
 
 

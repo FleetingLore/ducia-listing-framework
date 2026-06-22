@@ -36,7 +36,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-c9d4c122.js";
+            window.path_to_searchindex_js = "searchindex-4568314d.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-df4d3453.js"></script>
@@ -205,29 +205,50 @@
 </table>
 </div>
 <h2 id="项目结构"><a class="header" href="#项目结构">项目结构</a></h2>
-<pre><code>ducia-listing-framework/
-├── config/                 # 所有配置文件
-│   ├── auth.json           #   JWT 密钥
-│   ├── roles.json          #   动态角色定义
-│   ├── sequence.json       #   序列码
-│   ├── settings.json       #   功能开关
-│   └── i18n/               #   语言资源文件
-├── backend/
-│   ├── ducia-core/         # 框架核心（trait 定义）
-│   ├── plugins/            # 官方插件
-│   │   ├── auth-simple/    #   序列码认证
-│   │   ├── auth-db/        #   JWT + 数据库认证
-│   │   ├── storage-fs/     #   文件系统存储
-│   │   └── storage-sqlite/ #   SQLite 存储
-│   ├── server/             # 二进制入口
-│   └── wasm/               # WASM 共享逻辑
-├── src/                    # 前端源码
-│   ├── types/              #   TypeScript 类型
-│   ├── hooks/              #   React Hooks
-│   ├── components/         #   UI 组件
-│   └── pages/              #   页面
-└── book/                   # 本书源码
-</code></pre>
+<pre class="mermaid">flowchart TB
+    ROOT["ducia-listing-framework/"]
+
+    ROOT --&gt; CONFIG
+    ROOT --&gt; BACKEND
+    ROOT --&gt; SRC
+    ROOT --&gt; BOOK
+
+    subgraph CONFIG["config/ 所有配置文件"]
+        direction TB
+        cf1["auth.json — JWT 密钥"]
+        cf2["roles.json — 动态角色定义"]
+        cf3["sequence.json — 序列码"]
+        cf4["settings.json — 功能开关"]
+        cf5["i18n/ — 语言资源文件"]
+    end
+
+    subgraph BACKEND["backend/"]
+        direction TB
+        be1["ducia-core/ — 框架核心（trait 定义）"]
+        be2["server/ — 二进制入口"]
+        be3["wasm/ — WASM 共享逻辑"]
+        subgraph PLUGINS["plugins/ 官方插件"]
+            direction LR
+            pl1["auth-simple — 序列码认证"]
+            pl2["auth-db — JWT + 数据库认证"]
+            pl3["storage-fs — 文件系统存储"]
+            pl4["storage-sqlite — SQLite 存储"]
+        end
+    end
+
+    subgraph SRC["src/ 前端源码"]
+        direction LR
+        sr1["types/ — TypeScript 类型"]
+        sr2["hooks/ — React Hooks"]
+        sr3["components/ — UI 组件"]
+        sr4["pages/ — 页面"]
+    end
+
+    subgraph BOOK["book/ 本书源码"]
+        bk1["本书源码"]
+    end
+</pre>
+
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="快速开始"><a class="header" href="#快速开始">快速开始</a></h1>
 <h2 id="环境要求"><a class="header" href="#环境要求">环境要求</a></h2>
@@ -289,28 +310,29 @@ curl http://127.0.0.1:3001/api/auth/me \
 <h1 id="系统架构"><a class="header" href="#系统架构">系统架构</a></h1>
 <p>Ducia 采用<strong>前后端分离 + 插件化</strong>架构，后端负责 API、认证和存储，前端负责 UI 渲染和交互。</p>
 <h2 id="整体分层"><a class="header" href="#整体分层">整体分层</a></h2>
-<pre><code>┌─────────────────────────────────────────────────┐
-│                   浏览器                          │
-│         React 18 + TypeScript + Vite             │
-│     (Listing / DocPage / AdminPage)              │
-└─────────────────┬───────────────────────────────┘
-                  │ /api/*
-                  ▼
-┌─────────────────────────────────────────────────┐
-│            Vite Dev Proxy (:5173)                │
-│           → Actix-web (:3001)                    │
-└─────────────────┬───────────────────────────────┘
-                  │
-                  ▼
-┌─────────────────────────────────────────────────┐
-│              PluginRegistry                      │
-│  ┌──────────┐  ┌──────────┐  ┌───────────────┐  │
-│  │ Auth     │  │ Storage  │  │ Extras        │  │
-│  │ Plugin   │  │ Plugin   │  │ (扩展预留)     │  │
-│  └──────────┘  └──────────┘  └───────────────┘  │
-└─────────────────────────────────────────────────┘
-</code></pre>
-<p>请求路径：浏览器发起 API 请求 → Vite 开发代理转发到 <code>127.0.0.1:3001</code> → Actix-web 路由到对应 handler → handler 从 <code>AppState</code> 获取 <code>PluginRegistry</code> → 调用具体的 Auth / Storage 插件。</p>
+<pre class="mermaid">flowchart TB
+    Browser["浏览器&lt;br/&gt;React 18+TS+Vite&lt;br/&gt;Listing/DocPage/&lt;br/&gt;AdminPage"]
+    Proxy["Vite Dev Proxy (:5173)&lt;br/&gt;→ Actix-web (:3001)"]
+    Registry["PluginRegistry"]
+    Auth["Auth Plugin&lt;br/&gt;认证"]
+    Storage["Storage Plugin&lt;br/&gt;存储"]
+    Extras["Extras&lt;br/&gt;扩展预留"]
+
+    Browser --&gt;|"/api/*"| Proxy
+    Proxy --&gt; Registry
+    Registry --&gt; Auth
+    Registry --&gt; Storage
+    Registry --&gt; Extras
+</pre>
+
+<p>请求路径：</p>
+<ul>
+<li>浏览器发起 API 请求</li>
+<li>Vite 开发代理转发到 <code>127.0.0.1:3001</code></li>
+<li>Actix-web 路由到对应 handler</li>
+<li>handler 从 <code>AppState</code> 获取 <code>PluginRegistry</code></li>
+<li>调用具体的 Auth / Storage 插件</li>
+</ul>
 <h2 id="后端6-个-rust-crate"><a class="header" href="#后端6-个-rust-crate">后端：6 个 Rust Crate</a></h2>
 <div class="table-wrapper">
 <table>
@@ -334,23 +356,36 @@ curl http://127.0.0.1:3001/api/auth/me \
 <li><code>ducia-server</code> 依赖所有 5 个 crate，在启动时按配置组装</li>
 </ul>
 <h2 id="ducia-core-内部模块"><a class="header" href="#ducia-core-内部模块">ducia-core 内部模块</a></h2>
-<pre><code class="language-text">ducia-core/src/
-├── lib.rs          # 重新导出所有公开类型
-├── doc/
-│   ├── mod.rs
-│   ├── model.rs    # DocMeta, DocFull, CreateDocRequest, DocFormat
-│   └── repo.rs     # DocRepository trait
-├── plugin/
-│   ├── mod.rs
-│   ├── auth.rs     # AuthPlugin trait + anonymous()
-│   ├── registry.rs # PluginRegistry (builder pattern)
-│   └── storage.rs  # StoragePlugin = Box&lt;dyn DocRepository&gt;
-├── perm/
-│   ├── mod.rs
-│   └── model.rs    # Identity, RoleDef, RoleConfig
-└── i18n/
-    └── mod.rs      # I18nManager
-</code></pre>
+<pre class="mermaid">flowchart TB
+    lib["lib.rs&lt;br/&gt;公共 API 重新导出"]
+
+    subgraph doc["doc/ 文档模型"]
+        direction LR
+        doc_model["model.rs&lt;br/&gt;DocMeta · DocFull&lt;br/&gt;CreateDocRequest&lt;br/&gt;DocFormat"]
+        doc_repo["repo.rs&lt;br/&gt;DocRepository trait"]
+    end
+
+    subgraph plugin["plugin/ 插件系统"]
+        direction LR
+        p_auth["auth.rs&lt;br/&gt;AuthPlugin trait"]
+        p_registry["registry.rs&lt;br/&gt;PluginRegistry"]
+        p_storage["storage.rs&lt;br/&gt;StoragePlugin"]
+    end
+
+    subgraph perm["perm/ 权限引擎"]
+        perm_model["model.rs&lt;br/&gt;Identity · RoleDef&lt;br/&gt;RoleConfig"]
+    end
+
+    subgraph i18n["i18n/ 国际化"]
+        i18n_mgr["mod.rs&lt;br/&gt;I18nManager"]
+    end
+
+    lib --&gt; doc
+    lib --&gt; plugin
+    lib --&gt; perm
+    lib --&gt; i18n
+</pre>
+
 <h2 id="插件注册表pluginregistry"><a class="header" href="#插件注册表pluginregistry">插件注册表（PluginRegistry）</a></h2>
 <p><code>PluginRegistry</code> 采用 <strong>builder 模式</strong>在启动时组装：</p>
 <pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
@@ -388,8 +423,13 @@ let registry = PluginRegistry::new()
 }
 <span class="boring">}</span></code></pre>
 <h2 id="前端react-18--typescript"><a class="header" href="#前端react-18--typescript">前端：React 18 + TypeScript</a></h2>
-<h3 id="三个视图view"><a class="header" href="#三个视图view">三个视图（View）</a></h3>
-<p>前端通过 <code>location.pathname</code> 判断当前视图：</p>
+<h3 id="视图注册表viewregistry"><a class="header" href="#视图注册表viewregistry">视图注册表（ViewRegistry）</a></h3>
+<p>前端不再硬编码 3 个视图，而是采用 <strong>ViewRegistry</strong> 模式，视图按 URL 模式动态注册和匹配：</p>
+<ul>
+<li><strong><code>src/views/registry.ts</code></strong> — <code>ViewRegistry</code> 类，提供 <code>register()</code> 注册视图、<code>resolve()</code> 按当前路径匹配视图</li>
+<li><strong><code>src/views/defaults.ts</code></strong> — 默认注册 3 个视图（listing、doc、admin）</li>
+</ul>
+<p>当前已注册的默认视图及路径映射：</p>
 <div class="table-wrapper">
 <table>
 <thead>
@@ -402,6 +442,9 @@ let registry = PluginRegistry::new()
 </tbody>
 </table>
 </div>
+<blockquote>
+<p>以上 3 个视图仅为默认注册项。通过 <code>viewRegistry.register({name, match, component})</code> 即可添加新视图，路径映射完全可扩展。</p>
+</blockquote>
 <h3 id="核心-hooks"><a class="header" href="#核心-hooks">核心 Hooks</a></h3>
 <div class="table-wrapper">
 <table>
@@ -418,7 +461,7 @@ let registry = PluginRegistry::new()
 </table>
 </div>
 <h3 id="前端入口"><a class="header" href="#前端入口">前端入口</a></h3>
-<pre><code class="language-tsx">// src/main.tsx
+<pre><code class="language-typescript">// src/main.tsx
 ReactDOM.createRoot(document.getElementById("root")!).render(
     &lt;I18nProvider&gt;
         &lt;App /&gt;
@@ -460,7 +503,7 @@ export default defineConfig({
 <li><strong>编译时组合</strong>：插件在 <code>main.rs</code> 编译时注册，非运行时动态加载</li>
 </ul>
 <h2 id="插件架构图"><a class="header" href="#插件架构图">插件架构图</a></h2>
-<pre><code class="language-mermaid">graph TD
+<pre class="mermaid">graph TD
     subgraph ducia-core
         AT[AuthPlugin trait]
         DR[DocRepository trait]
@@ -483,7 +526,8 @@ export default defineConfig({
     DR -.-&gt; SS
     PR --&gt; AT
     PR --&gt; DR
-</code></pre>
+</pre>
+
 <h2 id="authplugin-trait"><a class="header" href="#authplugin-trait">AuthPlugin trait</a></h2>
 <p>定义在 <code>ducia-core/src/plugin/auth.rs</code>，是认证机制的抽象接口：</p>
 <pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
@@ -593,6 +637,20 @@ impl PluginRegistry {
 <li>配置：<code>config/sequence.json</code>（定义验证序列数组）</li>
 <li>特点：最简单，无需数据库，适合开发调试或单机单用户</li>
 </ul>
+<p><strong>前端交互</strong>：管理面板是一个 2×2 按钮网格，排列为 <code>[2,1,3,4]</code>（参见 <a href="#数制设计">数制设计</a>）。每个按钮是翻转开关，由点击次数决定颜色：</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>点击次数</th><th>视觉效果</th></tr>
+</thead>
+<tbody>
+<tr><td>0（未点过）</td><td><code>#1f2328</code> 边框 + 半透明黑底</td></tr>
+<tr><td>奇数次</td><td><code>#90DFDF</code> 边框 + 半透明青蓝底</td></tr>
+<tr><td>偶数次（&gt;0）</td><td>同未点过</td></tr>
+</tbody>
+</table>
+</div>
+<p>颜色由 <code>clickCounts[num] % 2</code> 驱动，计数永不清零。序列验证独立于颜色：每次点击将数字追加到 <code>userInput</code>，末尾匹配则登录成功，前缀不匹配则清空 <code>userInput</code>（但颜色不变——用户需手动 toggle 回暗色或继续点击）。</p>
 <pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>pub struct SimpleAuth {
@@ -602,11 +660,18 @@ impl PluginRegistry {
 <span class="boring">}</span></code></pre>
 <h3 id="auth-db数据库认证"><a class="header" href="#auth-db数据库认证">auth-db（数据库认证）</a></h3>
 <ul>
-<li>路径：<code>backend/plugins/auth-db/</code></li>
-<li>依赖：<code>ducia-core</code>、<code>rusqlite</code>、<code>bcrypt</code>、<code>jsonwebtoken</code>、<code>chrono</code></li>
-<li>原理：用户名+密码注册（bcrypt 哈希），登录返回 JWT（7天有效），Bearer Token 认证</li>
-<li>配置：<code>config/auth.json</code>（<code>jwt_secret</code> 字段）</li>
-<li>特点：多用户支持，持久化，支持注册/登录/获取用户信息</li>
+<li><strong>路径</strong>：<code>backend/plugins/auth-db/</code></li>
+<li><strong>依赖</strong>：<code>ducia-core</code>、<code>rusqlite</code>、<code>bcrypt</code>、<code>jsonwebtoken</code>、<code>chrono</code>
+<ul>
+<li><code>rusqlite</code> — 操作 SQLite 数据库，存储用户注册信息</li>
+<li><code>bcrypt</code> — 密码哈希与验证，使用 <code>DEFAULT_COST=12</code></li>
+<li><code>jsonwebtoken</code> — 签发与验证 JWT token（HS256 算法）</li>
+<li><code>chrono</code> — 生成 UTC 时间戳（<code>created_at</code> 字段和 JWT 的 <code>iat</code>/<code>exp</code> claims）</li>
+</ul>
+</li>
+<li><strong>原理</strong>：用户名+密码注册（bcrypt 哈希），登录返回 JWT（7天有效），Bearer Token 认证</li>
+<li><strong>配置</strong>：<code>config/auth.json</code>（<code>jwt_secret</code> 字段）</li>
+<li><strong>特点</strong>：多用户支持，持久化，支持注册/登录/获取用户信息</li>
 </ul>
 <pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
@@ -615,21 +680,459 @@ impl PluginRegistry {
     jwt_secret: String,
 }
 <span class="boring">}</span></code></pre>
+<h4 id="数据库-schema"><a class="header" href="#数据库-schema">数据库 Schema</a></h4>
+<p><code>auth.db</code> 在插件初始化时自动创建 <code>users</code> 表：</p>
+<pre><code class="language-sql">CREATE TABLE IF NOT EXISTS users (
+    id         TEXT PRIMARY KEY,       -- UUID v4，用户唯一标识
+    username   TEXT NOT NULL UNIQUE,   -- 登录用户名，全局唯一
+    password   TEXT NOT NULL,          -- bcrypt 哈希后的密码
+    roles      TEXT NOT NULL DEFAULT 'viewer',  -- 逗号分隔的角色字符串
+    created_at INTEGER NOT NULL         -- Unix 时间戳（秒），注册时间
+);
+</code></pre>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>列名</th><th>类型</th><th>约束</th><th>说明</th></tr>
+</thead>
+<tbody>
+<tr><td><code>id</code></td><td>TEXT</td><td>PRIMARY KEY</td><td>UUID v4 字符串，由 <code>uuid::Uuid::new_v4()</code> 生成</td></tr>
+<tr><td><code>username</code></td><td>TEXT</td><td>NOT NULL UNIQUE</td><td>注册时 trim 去除首尾空白，空字符串会被拒绝</td></tr>
+<tr><td><code>password</code></td><td>TEXT</td><td>NOT NULL</td><td>bcrypt 哈希值，使用 <code>DEFAULT_COST</code>（12）轮</td></tr>
+<tr><td><code>roles</code></td><td>TEXT</td><td>NOT NULL, DEFAULT <code>'viewer'</code></td><td>逗号分隔的角色名，如 <code>"viewer,editor"</code>。注册时固定为 <code>"viewer"</code></td></tr>
+<tr><td><code>created_at</code></td><td>INTEGER</td><td>NOT NULL</td><td><code>chrono::Utc::now().timestamp()</code> 生成的 Unix 秒级时间戳</td></tr>
+</tbody>
+</table>
+</div>
+<h4 id="注册流程"><a class="header" href="#注册流程">注册流程</a></h4>
+<ol>
+<li><strong>输入校验</strong>：检查 <code>username.trim()</code> 非空且 <code>password.len() &gt;= 4</code>，不满足则返回错误 <code>"username empty or password too short (min 4)"</code></li>
+<li><strong>生成 ID</strong>：<code>uuid::Uuid::new_v4().to_string()</code> 生成全局唯一用户 ID</li>
+<li><strong>密码哈希</strong>：<code>bcrypt::hash(&amp;req.password, bcrypt::DEFAULT_COST)</code> 对明文密码做 12 轮 bcrypt 哈希</li>
+<li><strong>写入数据库</strong>：执行 <code>INSERT INTO users (id, username, password, roles, created_at) VALUES (?1,?2,?3,?4,?5)</code>，roles 固定为 <code>"viewer"</code>，<code>created_at</code> 取当前 UTC 时间戳</li>
+<li><strong>返回结果</strong>：返回 <code>UserInfo { id, username, roles: vec!["viewer"] }</code></li>
+</ol>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>pub fn register(&amp;self, req: &amp;RegisterRequest) -&gt; anyhow::Result&lt;UserInfo&gt; {
+    if req.username.trim().is_empty() || req.password.len() &lt; 4 {
+        anyhow::bail!("username empty or password too short (min 4)");
+    }
+    let conn = self.conn.lock().unwrap();
+    let id = uuid::Uuid::new_v4().to_string();
+    let hashed = bcrypt::hash(&amp;req.password, bcrypt::DEFAULT_COST)?;
+    let now = chrono::Utc::now().timestamp();
+    conn.execute(
+        "INSERT INTO users (id, username, password, roles, created_at) VALUES (?1,?2,?3,?4,?5)",
+        rusqlite::params![id, req.username.trim(), hashed, "viewer", now],
+    )?;
+    Ok(UserInfo { id, username: req.username.trim().to_string(), roles: vec!["viewer".into()] })
+}
+<span class="boring">}</span></code></pre>
+<h4 id="登录流程"><a class="header" href="#登录流程">登录流程</a></h4>
+<ol>
+<li><strong>查询用户</strong>：<code>SELECT id, username, password, roles FROM users WHERE username = ?1</code>，用户名不存在则返回 <code>"invalid username or password"</code>（不区分「用户不存在」和「密码错误」，防止用户枚举攻击）</li>
+<li><strong>密码验证</strong>：<code>bcrypt::verify(&amp;req.password, &amp;hashed)</code> 对比明文与 bcrypt 哈希</li>
+<li><strong>角色解析</strong>：将 DB 中的逗号分隔字符串 <code>"viewer,editor"</code> 拆分为 <code>Vec&lt;String&gt;</code>，过滤空串</li>
+<li><strong>构建 JWT Claims</strong>：填充 <code>sub</code>（用户 ID）、<code>username</code>、<code>roles</code>、<code>exp</code>（当前时间 + 7天秒数）、<code>iat</code>（签发时间）</li>
+<li><strong>签发 Token</strong>：<code>jsonwebtoken::encode()</code> 使用 HS256 算法和 <code>jwt_secret</code> 签名</li>
+<li><strong>返回结果</strong>：返回 <code>AuthResponse { token, user: UserInfo { id, username, roles } }</code></li>
+</ol>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>pub fn login(&amp;self, req: &amp;LoginRequest) -&gt; anyhow::Result&lt;AuthResponse&gt; {
+    let conn = self.conn.lock().unwrap();
+    let mut stmt = conn.prepare(
+        "SELECT id, username, password, roles FROM users WHERE username = ?1"
+    )?;
+    let (id, username, hashed, roles_str): (String, String, String, String) =
+        stmt.query_row([req.username.trim()], |row| {
+            Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?))
+        })
+        .map_err(|_| anyhow::anyhow!("invalid username or password"))?;
+    if !bcrypt::verify(&amp;req.password, &amp;hashed)? {
+        anyhow::bail!("invalid username or password");
+    }
+    let roles: Vec&lt;String&gt; = roles_str.split(',')
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty())
+        .collect();
+    let now = chrono::Utc::now().timestamp() as usize;
+    let claims = Claims {
+        sub: id.clone(), username: username.clone(), roles: roles.clone(),
+        exp: now + 86400 * 7, iat: now,
+    };
+    let token = jsonwebtoken::encode(
+        &amp;jsonwebtoken::Header::default(),
+        &amp;claims,
+        &amp;jsonwebtoken::EncodingKey::from_secret(self.jwt_secret.as_bytes()),
+    )?;
+    Ok(AuthResponse { token, user: UserInfo { id, username, roles } })
+}
+<span class="boring">}</span></code></pre>
+<h4 id="jwt-claims-结构"><a class="header" href="#jwt-claims-结构">JWT Claims 结构</a></h4>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>#[derive(Debug, Serialize, Deserialize)]
+struct Claims {
+    sub: String,       // Subject — 用户 UUID（对应 users.id）
+    username: String,  // 用户名
+    roles: Vec&lt;String&gt;, // 角色列表，如 ["viewer", "editor"]
+    exp: usize,        // Expiration Time — 过期时间（Unix 秒），签发时设为 now + 604800（7天）
+    iat: usize,        // Issued At — 签发时间（Unix 秒）
+}
+<span class="boring">}</span></code></pre>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>字段</th><th>类型</th><th>说明</th></tr>
+</thead>
+<tbody>
+<tr><td><code>sub</code></td><td>String</td><td>Subject，用户唯一标识（UUID v4）</td></tr>
+<tr><td><code>username</code></td><td>String</td><td>登录用户名</td></tr>
+<tr><td><code>roles</code></td><td><code>Vec&lt;String&gt;</code></td><td>角色列表，从 DB 的逗号分隔字符串解析而来</td></tr>
+<tr><td><code>exp</code></td><td>usize</td><td>过期时间，Unix 秒。登录时 = <code>now + 86400 * 7</code>；<code>create_session</code> 时 = <code>now + 86400</code>（1天）</td></tr>
+<tr><td><code>iat</code></td><td>usize</td><td>签发时间，Unix 秒</td></tr>
+</tbody>
+</table>
+</div>
+<h4 id="token-验证"><a class="header" href="#token-验证">Token 验证</a></h4>
+<p><code>authenticate()</code> 方法实现 <code>AuthPlugin</code> trait 的请求认证入口：</p>
+<ol>
+<li><strong>提取 Token</strong>：从请求头的 <code>authorization</code> 字段中提取 <code>Bearer &lt;token&gt;</code>（也支持 <code>x-session-token</code> 头作为备选）</li>
+<li><strong>空 Token 处理</strong>：token 为空字符串时直接返回 <code>None</code>（匿名用户）</li>
+<li><strong>解码 JWT</strong>：调用 <code>check_session()</code> → <code>verify_token()</code>，使用 <code>jsonwebtoken::decode::&lt;Claims&gt;()</code> 解码，验证签名和过期时间</li>
+<li><strong>构建 Identity</strong>：解码成功后将 <code>claims.sub</code> 作为 <code>Identity.id</code>、<code>claims.roles</code> 直接作为 <code>Identity.roles</code>、<code>claims.username</code> 存入 <code>Identity.metadata</code></li>
+</ol>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>async fn authenticate(&amp;self, headers: &amp;HashMap&lt;String, String&gt;) -&gt; Option&lt;Identity&gt; {
+    let token = headers
+        .get("authorization")
+        .and_then(|v| v.strip_prefix("Bearer "))
+        .or_else(|| headers.get("x-session-token").map(|s| s.as_str()))
+        .unwrap_or("");
+    if token.is_empty() { return None; }
+    self.check_session(token).await
+}
+
+fn verify_token(&amp;self, token: &amp;str) -&gt; Option&lt;Identity&gt; {
+    let data = jsonwebtoken::decode::&lt;Claims&gt;(
+        token,
+        &amp;jsonwebtoken::DecodingKey::from_secret(self.jwt_secret.as_bytes()),
+        &amp;jsonwebtoken::Validation::default(),
+    ).ok()?;
+    let claims = data.claims;
+    let mut meta = HashMap::new();
+    meta.insert("username".into(), claims.username);
+    Some(Identity {
+        id: claims.sub,
+        roles: claims.roles,
+        permissions: vec![],
+        metadata: meta,
+    })
+}
+<span class="boring">}</span></code></pre>
+<h4 id="配置"><a class="header" href="#配置">配置</a></h4>
+<p><code>config/auth.json</code> 是认证配置入口。<code>main.rs</code> 检测该文件是否存在来决定使用 <code>auth-db</code> 还是 <code>auth-simple</code>：</p>
+<pre><code class="language-json">{
+  "jwt_secret": "change-this-to-a-random-secret-key-in-production"
+}
+</code></pre>
+<ul>
+<li><code>jwt_secret</code> 为<strong>可选字段</strong>（<code>Option&lt;String&gt;</code>）。如果未提供，插件自动用 <code>uuid::Uuid::new_v4()</code> 生成一个随机密钥（进程生命周期内不变，重启后会变更——已签发的 JWT 全部失效）</li>
+<li>建议生产环境手动设置一个强随机字符串，例如 <code>openssl rand -base64 64</code> 生成</li>
+</ul>
+<h4 id="密码约束"><a class="header" href="#密码约束">密码约束</a></h4>
+<ul>
+<li><strong>最小长度</strong>：<code>req.password.len() &lt; 4</code> 时拒绝注册，返回 400 错误</li>
+<li><strong>哈希成本</strong>：<code>bcrypt::DEFAULT_COST</code>（常量值 12），在安全性与注册/登录延迟之间取平衡</li>
+<li>用户名空字符串也会被拒绝（<code>username.trim().is_empty()</code> 检查）</li>
+</ul>
+<h4 id="与-rolesjson-的关系"><a class="header" href="#与-rolesjson-的关系">与 roles.json 的关系</a></h4>
+<ul>
+<li><strong>注册角色</strong>：新注册用户的 <code>roles</code> 字段固定为 <code>"viewer"</code>，对应 <code>config/roles.json</code> 中定义的 <code>viewer</code> 角色（拥有 <code>doc:read</code> 权限）。管理员可通过直接修改 SQLite 数据库将用户的 <code>roles</code> 字段改为 <code>"viewer,editor"</code> 等形式来提升权限（尚无管理 UI）</li>
+<li><strong>角色存储格式</strong>：<code>users.roles</code> 是逗号分隔的字符串（如 <code>"viewer,editor,admin"</code>），登录时通过 <code>split(',')</code> 解析为 <code>Vec&lt;String&gt;</code>，空字符串被过滤</li>
+<li><strong>Identity 构建</strong>：JWT 中携带角色列表 → <code>verify_token()</code> 将其填入 <code>Identity.roles</code>；<code>permissions</code> 字段初始为空 <code>vec![]</code>，后续由 <code>RoleConfig::resolve_permissions()</code> 展开继承链并注入实际权限字符串</li>
+</ul>
+<h4 id="api-端点"><a class="header" href="#api-端点">API 端点</a></h4>
+<p>以下端点注册在 <code>main.rs</code> 的路由表中（路径为 <code>handle_403</code> 模式，见 <a href="#鉴权模型">鉴权模型</a>）：</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>方法</th><th>路径</th><th>Handler</th><th>说明</th></tr>
+</thead>
+<tbody>
+<tr><td>POST</td><td><code>/api/auth/register</code></td><td><code>handlers::auth_handler::register</code></td><td>注册新用户，body: <code>{"username":"...","password":"..."}</code></td></tr>
+<tr><td>POST</td><td><code>/api/auth/login</code></td><td><code>handlers::auth_handler::login</code></td><td>登录，返回 JWT token + 用户信息</td></tr>
+<tr><td>GET</td><td><code>/api/auth/me</code></td><td><code>handlers::auth_handler::me</code></td><td>获取当前用户信息，需要 <code>Authorization: Bearer &lt;token&gt;</code> 头</td></tr>
+</tbody>
+</table>
+</div>
+<p><code>register</code> 成功返回 200 + <code>{"success":true,"data":{...}}</code>，失败返回 400。<code>login</code> 和 <code>me</code> 认证失败返回 401。</p>
+<h4 id="curl-示例"><a class="header" href="#curl-示例">curl 示例</a></h4>
+<p>注册新用户：</p>
+<pre><code class="language-bash">curl -s -X POST http://127.0.0.1:3001/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"username":"alice","password":"secret123"}'
+# 响应：{"success":true,"data":{"id":"...","username":"alice","roles":["viewer"]}}
+</code></pre>
+<p>登录获取 Token：</p>
+<pre><code class="language-bash">curl -s -X POST http://127.0.0.1:3001/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"alice","password":"secret123"}'
+# 响应：{"success":true,"data":{"token":"eyJhbG...","user":{...}}}
+</code></pre>
+<p>用 Token 获取当前用户信息：</p>
+<pre><code class="language-bash">curl -s http://127.0.0.1:3001/api/auth/me \
+  -H "Authorization: Bearer eyJhbG..."
+# 响应：{"success":true,"data":{"id":"...","roles":["viewer"],"username":"alice"}}
+</code></pre>
+<h4 id="安全提示"><a class="header" href="#安全提示">安全提示</a></h4>
+<ul>
+<li><strong>更换 jwt_secret</strong>：生产部署必须在 <code>config/auth.json</code> 中设置一个强随机密钥（例如 <code>openssl rand -base64 64</code>），默认值和自动生成的 UUID 都不安全</li>
+<li><strong>密码强度</strong>：bcrypt 的 12 轮哈希能抵抗暴力破解，但用户仍应使用足够复杂的密码。框架目前仅要求最低 4 字符，无复杂度策略</li>
+<li><strong>JWT 无状态</strong>：JWT 在签发后无法服务端撤销（<code>destroy_session</code> 直接返回 <code>Ok(())</code>）。这意味着即使用户“登出“，已签发的 Token 在过期前仍然有效。如果场景要求即时吊销，需在 auth-db 之上加一层 Token 黑名单机制</li>
+<li><strong>错误信息一致</strong>：登录失败时始终返回 <code>"invalid username or password"</code>，不区分用户不存在和密码错误，防止用户名枚举</li>
+</ul>
 <h3 id="storage-fs文件系统存储"><a class="header" href="#storage-fs文件系统存储">storage-fs（文件系统存储）</a></h3>
 <ul>
 <li>路径：<code>backend/plugins/storage-fs/</code></li>
 <li>依赖：<code>ducia-core</code>、<code>serde_json</code></li>
 <li>原理：<code>config/docs.json</code> 存储元数据索引，<code>docs/</code> 目录存储 <code>.md</code> 文件</li>
-<li>特点：零外部依赖，人类可读，适合单机部署和手动编辑</li>
+</ul>
+<p><strong>数据布局</strong>：</p>
+<pre><code>config/
+  docs.json          ← 文档索引（所有元数据）
+docs/
+  1.md               ← id=1 的文档内容
+  2.md               ← id=2 的文档内容
+</code></pre>
+<ul>
+<li><code>config/docs.json</code>：存储全局索引，包含 <code>next_id</code> 自增计数器和 <code>docs</code> 映射表</li>
+<li><code>docs/{id}.md</code>：每个文档的 Markdown 正文，文件名由 <code>DocMeta.file</code> 字段决定</li>
+</ul>
+<p><strong>docs.json 结构示例</strong>：</p>
+<pre><code class="language-json">{
+  "next_id": 4,
+  "docs": {
+    "1": {
+      "id": 1,
+      "title": "Getting Started",
+      "file": "1.md",
+      "created_at": "2025-06-01T10:00:00Z",
+      "deprecated": false,
+      "deleted": false
+    },
+    "2": {
+      "id": 2,
+      "title": "API Reference",
+      "file": "2.md",
+      "created_at": "2025-06-02T14:30:00Z",
+      "deprecated": false,
+      "deleted": false
+    },
+    "3": {
+      "id": 3,
+      "title": "Changelog (已弃用)",
+      "file": "3.md",
+      "created_at": "2025-06-03T09:00:00Z",
+      "deprecated": true,
+      "deleted": false
+    }
+  }
+}
+</code></pre>
+<p><strong>DocMeta 字段说明</strong>：</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>字段</th><th>类型</th><th>说明</th></tr>
+</thead>
+<tbody>
+<tr><td><code>id</code></td><td><code>u32</code></td><td>文档唯一标识，自增分配</td></tr>
+<tr><td><code>title</code></td><td><code>String</code></td><td>文档标题</td></tr>
+<tr><td><code>file</code></td><td><code>String</code></td><td>对应的 Markdown 文件名（如 <code>"1.md"</code>）</td></tr>
+<tr><td><code>created_at</code></td><td><code>String</code></td><td>ISO 8601 创建时间</td></tr>
+<tr><td><code>deprecated</code></td><td><code>bool</code></td><td>弃用标记：<code>true</code> 时前端显示弃用提示但仍可访问</td></tr>
+<tr><td><code>deleted</code></td><td><code>bool</code></td><td>软删除标记：<code>true</code> 时从列表中隐藏（不返回给前端）</td></tr>
+</tbody>
+</table>
+</div>
+<p><strong>读写流程</strong>：</p>
+<ol>
+<li><strong>list_docs</strong>：读取整个 <code>docs.json</code> → 反序列化 → 过滤 <code>deprecated</code>/<code>deleted</code>（取决于 <code>include_deleted</code> 参数）→ 返回 <code>Vec&lt;DocMeta&gt;</code></li>
+<li><strong>get_doc</strong>：先查 <code>docs.json</code> 获取 <code>DocMeta</code> → 读取 <code>docs/{file}</code> 获取 Markdown 正文 → 组装 <code>DocFull { meta, content }</code></li>
+<li><strong>create_doc</strong>：读取 <code>docs.json</code> 获取 <code>next_id</code>（如 <code>4</code>）→ 将内容写入 <code>docs/4.md</code> → 将新条目插入 <code>docs.json</code> 的 <code>docs</code> 映射 → <code>next_id</code> 自增为 <code>5</code> → 写回整个 <code>docs.json</code></li>
+<li><strong>update_meta</strong>：读取 <code>docs.json</code> → 定位目标 <code>id</code> → 修改 <code>deprecated</code>/<code>deleted</code> 字段 → 写回整个 <code>docs.json</code></li>
+</ol>
+<p><strong>局限性</strong>：</p>
+<ul>
+<li><strong>非原子操作</strong>：读取和写入之间无锁保护，并发写入可能导致数据丢失</li>
+<li><strong>全量索引重写</strong>：每次 <code>create_doc</code> 或 <code>update_meta</code> 都会序列化并写回整个 <code>docs.json</code>，文档数量上万时性能下降明显</li>
+<li><strong>无搜索能力</strong>：不支持全文搜索或按标题过滤，只能遍历所有条目</li>
+<li><strong>无分页</strong>：<code>list_docs</code> 一次返回全部文档，无法按页获取</li>
+</ul>
+<p><strong>适用场景</strong>：</p>
+<ul>
+<li>单机部署、文档数量在百级以内</li>
+<li>希望用 Git 对文档进行版本管理</li>
+<li>需要手动编辑 Markdown 文件或 <code>docs.json</code></li>
 </ul>
 <h3 id="storage-sqlitesqlite-存储"><a class="header" href="#storage-sqlitesqlite-存储">storage-sqlite（SQLite 存储）</a></h3>
 <ul>
 <li>路径：<code>backend/plugins/storage-sqlite/</code></li>
 <li>依赖：<code>ducia-core</code>、<code>rusqlite</code></li>
-<li>原理：所有文档和元数据存入 SQLite，文件内容仍按文件存储到 <code>docs/</code></li>
-<li>特点：原子操作，SQL 查询，并发安全，数据结构化管理</li>
+<li>原理：文档元数据存入 SQLite，文档正文仍以文件形式存储于 <code>docs/</code></li>
 </ul>
-<h2 id="如何编写一个新的存储插件"><a class="header" href="#如何编写一个新的存储插件">如何编写一个新的存储插件</a></h2>
+<p><strong>表结构</strong>：</p>
+<pre><code class="language-sql">-- 文档元数据表
+CREATE TABLE IF NOT EXISTS docs (
+    id          INTEGER PRIMARY KEY,
+    title       TEXT NOT NULL,
+    file        TEXT NOT NULL,
+    created_at  TEXT NOT NULL,
+    deprecated  INTEGER NOT NULL DEFAULT 0,   -- 0 = false, 1 = true
+    deleted     INTEGER NOT NULL DEFAULT 0    -- 0 = false, 1 = true
+);
+
+-- 全局设置表（键值对）
+CREATE TABLE IF NOT EXISTS settings (
+    key   TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+);
+</code></pre>
+<p><strong>site_name 存储</strong>：</p>
+<p><code>schema.sql</code> 执行后，插件在初始化时执行：</p>
+<pre><code class="language-sql">INSERT OR IGNORE INTO settings (key, value) VALUES ('site_name', 'My Docs');
+</code></pre>
+<p><code>site_name()</code> 方法从 <code>settings</code> 表读取：</p>
+<pre><code class="language-sql">SELECT value FROM settings WHERE key = 'site_name';
+</code></pre>
+<p><strong>相比 storage-fs 的优势</strong>：</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>特性</th><th>storage-fs</th><th>storage-sqlite</th></tr>
+</thead>
+<tbody>
+<tr><td>原子性</td><td>❌ 读写分离，无事务</td><td>✅ SQLite 事务保证</td></tr>
+<tr><td>排序/过滤</td><td>❌ 只能遍历所有条目</td><td>✅ <code>ORDER BY</code>、<code>WHERE</code> 子句</td></tr>
+<tr><td>并发安全</td><td>❌ 无锁保护</td><td>✅ <code>Mutex&lt;Connection&gt;</code> 串行化访问</td></tr>
+<tr><td>分页</td><td>❌ 全量返回</td><td>✅ <code>LIMIT ... OFFSET</code></td></tr>
+<tr><td>元数据查询</td><td>读整个 JSON 反序列化</td><td>SQL 按需查询</td></tr>
+</tbody>
+</table>
+</div>
+<p><strong>文档内容存储</strong>：</p>
+<p>文档正文（Markdown 内容）<strong>不存入 SQLite</strong>，仍以 <code>.md</code> 文件形式存储在 <code>docs/</code> 目录。这是一个刻意的设计选择：</p>
+<ul>
+<li>Markdown 内容通常较大（几 KB 到几十 KB），存入数据库会增加 I/O 开销</li>
+<li>文件形式方便用外部编辑器直接修改</li>
+<li>索引（元数据）在数据库中，正文在文件系统中——各取所长</li>
+</ul>
+<p><strong>从 storage-fs 迁移到 storage-sqlite</strong>：</p>
+<ol>
+<li>在 <code>config/settings.json</code> 中设置 <code>"use_database": true</code>：
+<pre><code class="language-json">{
+  "site_name": "My Docs",
+  "use_database": true
+}
+</code></pre>
+</li>
+<li>重启服务。插件会自动执行 <code>schema.sql</code> 建表，并从 <code>config/docs.json</code> 导入现有文档元数据</li>
+<li>验证迁移结果：通过 API 获取文档列表，确认所有文档可正常访问</li>
+<li>迁移完成后 <code>config/docs.json</code> 不再使用（可保留作为备份）</li>
+</ol>
+<h2 id="如何编写一个新插件"><a class="header" href="#如何编写一个新插件">如何编写一个新插件</a></h2>
+<h3 id="完整的编写清单"><a class="header" href="#完整的编写清单">完整的编写清单</a></h3>
+<p>无论编写存储插件还是认证插件，流程完全一致：</p>
+<ol>
+<li><strong>确定要实现哪个 trait</strong>：存储插件实现 <code>DocRepository</code>，认证插件实现 <code>AuthPlugin</code></li>
+<li><strong>创建 crate</strong>：<code>backend/plugins/&lt;plugin-name&gt;/</code></li>
+<li><strong>编写 <code>Cargo.toml</code></strong>：依赖 <code>ducia-core</code> + 所需的第三方库</li>
+<li><strong>定义结构体</strong>：包含连接、配置等状态字段</li>
+<li><strong>实现 trait</strong>：<code>#[async_trait] impl Xxx for Yyy { ... }</code></li>
+<li><strong>在 server 中注册</strong>：修改 <code>backend/server/Cargo.toml</code> 和 <code>backend/server/src/main.rs</code></li>
+<li><strong>验证</strong>：<code>cargo check</code>、启动服务、用 curl 测试</li>
+</ol>
+<blockquote>
+<p><strong>编写认证插件也一样</strong>：把上面第 2 步中的 <code>DocRepository</code> 换成 <code>AuthPlugin</code>，其余步骤完全相同。</p>
+</blockquote>
+<h3 id="认证插件示例auth-ldap-概念实现"><a class="header" href="#认证插件示例auth-ldap-概念实现">认证插件示例：auth-ldap 概念实现</a></h3>
+<p>以 LDAP 认证为例，展示 <code>AuthPlugin</code> trait 的实现模式：</p>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// backend/plugins/auth-ldap/src/lib.rs
+use async_trait::async_trait;
+use ducia_core::plugin::auth::{AuthPlugin, Identity};
+use ldap3::{LdapConn, LdapConnSettings};
+use std::collections::HashMap;
+
+pub struct LdapAuth {
+    server_url: String,
+    base_dn: String,
+}
+
+impl LdapAuth {
+    pub fn new(server_url: &amp;str, base_dn: &amp;str) -&gt; Self {
+        Self {
+            server_url: server_url.to_string(),
+            base_dn: base_dn.to_string(),
+        }
+    }
+}
+
+#[async_trait]
+impl AuthPlugin for LdapAuth {
+    fn name(&amp;self) -&gt; &amp;str {
+        "auth-ldap"
+    }
+
+    async fn authenticate(&amp;self, headers: &amp;HashMap&lt;String, String&gt;) -&gt; Option&lt;Identity&gt; {
+        // 从 Authorization 头提取 Basic Auth 凭据
+        let auth_header = headers.get("authorization")?;
+        let (username, password) = parse_basic_auth(auth_header)?;
+
+        // 连接 LDAP 服务器并尝试绑定
+        let mut ldap = LdapConn::new(&amp;self.server_url).ok()?;
+        let bind_dn = format!("uid={},{}", username, self.base_dn);
+        ldap.simple_bind(&amp;bind_dn, &amp;password).ok()?;
+
+        Some(Identity {
+            id: username,
+            roles: vec!["authenticated".into()],
+            permissions: vec!["doc:read".into(), "doc:write".into()],
+            metadata: HashMap::new(),
+        })
+    }
+
+    async fn create_session(&amp;self, identity: &amp;Identity) -&gt; anyhow::Result&lt;String&gt; {
+        // LDAP 认证一般不管理会话——直接返回身份 id 作为 token
+        Ok(identity.id.clone())
+    }
+
+    async fn destroy_session(&amp;self, _token: &amp;str) -&gt; anyhow::Result&lt;()&gt; {
+        // 无状态，无需销毁
+        Ok(())
+    }
+
+    async fn check_session(&amp;self, _token: &amp;str) -&gt; Option&lt;Identity&gt; {
+        // 无状态会话，不支持验证
+        None
+    }
+}
+
+fn parse_basic_auth(header: &amp;str) -&gt; Option&lt;(String, String)&gt; {
+    let encoded = header.strip_prefix("Basic ")?;
+    let decoded = String::from_utf8(
+        base64::Engine::decode(&amp;base64::engine::general_purpose::STANDARD, encoded).ok()?
+    ).ok()?;
+    let (user, pass) = decoded.split_once(':')?;
+    Some((user.to_string(), pass.to_string()))
+}
+<span class="boring">}</span></code></pre>
+<h3 id="存储插件完整示例storage-redis"><a class="header" href="#存储插件完整示例storage-redis">存储插件完整示例：storage-redis</a></h3>
 <p>以编写一个 <code>storage-redis</code> 为例：</p>
 <h3 id="1-创建-crate"><a class="header" href="#1-创建-crate">1. 创建 crate</a></h3>
 <pre><code class="language-bash">mkdir -p backend/plugins/storage-redis/src
@@ -716,6 +1219,39 @@ let storage_plugin: StoragePlugin = Box::new(
     RedisStorage::new("redis://127.0.0.1:6379")?
 );
 <span class="boring">}</span></code></pre>
+<h3 id="5-验证"><a class="header" href="#5-验证">5. 验证</a></h3>
+<p>完成以上步骤后，按顺序验证：</p>
+<pre><code class="language-bash"># 1. 编译检查（确保类型和 trait 实现正确）
+cargo check -p ducia-storage-redis
+
+# 2. 检查 server 能否正确链接新插件
+cargo check -p ducia-server
+
+# 3. 启动服务
+cargo run -p ducia-server
+
+# 4. 用 curl 测试文档列表
+curl -s http://127.0.0.1:3001/api/docs
+
+# 5. 测试创建文档
+curl -s -X POST http://127.0.0.1:3001/api/docs \
+  -H "Content-Type: application/json" \
+  -d '{"title":"Test Doc","content":"# Hello Redis"}'
+</code></pre>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>验证步骤</th><th>命令</th><th>预期结果</th></tr>
+</thead>
+<tbody>
+<tr><td><code>cargo check</code></td><td><code>cargo check -p &lt;plugin-name&gt;</code></td><td>零错误、零警告</td></tr>
+<tr><td>添加到 Cargo.toml</td><td>编辑 <code>backend/server/Cargo.toml</code></td><td>在 <code>[dependencies]</code> 中正确引用</td></tr>
+<tr><td>注册到 main.rs</td><td>编辑 <code>backend/server/src/main.rs</code></td><td><code>use</code> 导入 + <code>PluginRegistry</code> 注册</td></tr>
+<tr><td>启动服务</td><td><code>cargo run -p ducia-server</code></td><td>服务正常启动，无 panic</td></tr>
+<tr><td>curl 测试</td><td><code>curl http://127.0.0.1:3001/api/docs</code></td><td>返回 JSON，包含文档列表</td></tr>
+</tbody>
+</table>
+</div>
 <p>同样的流程适用于编写新的认证插件——只需实现 <code>AuthPlugin</code> trait 并在 <code>main.rs</code> 中注册即可。</p>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="权限模型"><a class="header" href="#权限模型">权限模型</a></h1>
@@ -801,13 +1337,14 @@ let storage_plugin: StoragePlugin = Box::new(
 }
 </code></pre>
 <p>继承关系可视化：</p>
-<pre><code class="language-mermaid">graph TD
+<pre class="mermaid">graph TD
     SA[superadmin&lt;br/&gt;permissions: *] --&gt; A
     A[admin&lt;br/&gt;+ doc:delete, user:manage, config:write] --&gt; E
     E[editor&lt;br/&gt;+ doc:write, doc:deprecate] --&gt; V
     V[viewer&lt;br/&gt;doc:read] --&gt; AN
     AN[anonymous&lt;br/&gt;doc:read]
-</code></pre>
+</pre>
+
 <p>一个 <code>editor</code> 角色的用户最终拥有：<code>doc:write</code> + <code>doc:deprecate</code> + <code>doc:read</code>（继承自 viewer）。</p>
 <h2 id="resolve_permissions-递归解析"><a class="header" href="#resolve_permissions-递归解析">resolve_permissions() 递归解析</a></h2>
 <p><code>RoleConfig::resolve_permissions()</code> 遍历用户的所有角色，递归收集权限：</p>
@@ -939,7 +1476,7 @@ let storage_plugin: StoragePlugin = Box::new(
 <h1 id="国际化i18n"><a class="header" href="#国际化i18n">国际化（i18n）</a></h1>
 <p>Ducia 的国际化设计遵循<strong>零硬编码</strong>原则：所有用户可见文本从 JSON 语言包加载，前后端统一使用键查找翻译。</p>
 <h2 id="设计概览"><a class="header" href="#设计概览">设计概览</a></h2>
-<pre><code class="language-mermaid">sequenceDiagram
+<pre class="mermaid">sequenceDiagram
     participant Browser
     participant Frontend
     participant Backend
@@ -954,7 +1491,8 @@ let storage_plugin: StoragePlugin = Box::new(
     Backend-&gt;&gt;Config: 读取 en.json
     Backend--&gt;&gt;Frontend: {"site.title": "...", ...}
     Frontend-&gt;&gt;Frontend: t("site.title") → "25 ECE 3 Todo List"
-</code></pre>
+</pre>
+
 <p>核心流程：</p>
 <ol>
 <li>前端从后端获取可用语言列表</li>
@@ -1018,7 +1556,7 @@ pub fn default_locale(&amp;self) -&gt; &amp;str
 <h2 id="前端i18nprovider--usei18n"><a class="header" href="#前端i18nprovider--usei18n">前端：I18nProvider + useI18n()</a></h2>
 <h3 id="i18nprovider"><a class="header" href="#i18nprovider">I18nProvider</a></h3>
 <p><code>I18nProvider</code> 是一个 React Context Provider，包裹整个应用：</p>
-<pre><code class="language-tsx">// src/main.tsx
+<pre><code class="language-typescript">// src/main.tsx
 ReactDOM.createRoot(document.getElementById("root")!).render(
     &lt;I18nProvider&gt;
         &lt;App /&gt;
@@ -1040,7 +1578,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
 <li>语言包缓存到 <code>packCache</code> Map 中，切换语言时避免重复请求</li>
 </ol>
 <h3 id="usei18n-hook"><a class="header" href="#usei18n-hook">useI18n() hook</a></h3>
-<pre><code class="language-tsx">function MyComponent() {
+<pre><code class="language-typescript">function MyComponent() {
     const { t, locale, setLocale, availableLocales, loading } = useI18n();
 
     return (
@@ -1054,14 +1592,14 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
 }
 </code></pre>
 <p><code>t()</code> 函数签名：</p>
-<pre><code class="language-tsx">const t: (key: string, params?: Record&lt;string, string | number&gt;) =&gt; string
+<pre><code class="language-typescript">const t: (key: string, params?: Record&lt;string, string | number&gt;) =&gt; string
 </code></pre>
 <p>支持参数插值（与后端 <code>tf()</code> 一致的 <code>{{param}}</code> 语法）：</p>
-<pre><code class="language-tsx">t("doc.list.count", { count: 5 })
+<pre><code class="language-typescript">t("doc.list.count", { count: 5 })
 // 语言包: "doc.list.count": "共 {{count}} 篇文档"
 // → "共 5 篇文档"
 </code></pre>
-<h2 id="api-端点"><a class="header" href="#api-端点">API 端点</a></h2>
+<h2 id="api-端点-1"><a class="header" href="#api-端点-1">API 端点</a></h2>
 <div class="table-wrapper">
 <table>
 <thead>
@@ -1282,15 +1820,12 @@ cp config/i18n/en.json config/i18n/ja.json
 </div>
 <h3 id="继承链解析"><a class="header" href="#继承链解析">继承链解析</a></h3>
 <p>框架在构建用户身份时，递归展开继承链并合并所有权限。以 <code>superadmin</code> 为例：</p>
-<pre><code>superadmin
-  ├── extends admin
-  │     ├── permissions: [doc:delete, user:manage, config:write]
-  │     └── extends editor
-  │           ├── permissions: [doc:write, doc:deprecate]
-  │           └── extends viewer
-  │                 └── permissions: [doc:read]
-  └── permissions: [*]
-</code></pre>
+<pre class="mermaid">flowchart LR
+    superadmin["superadmin&lt;br/&gt;权限: *"] --&gt;|"extends"| admin["admin&lt;br/&gt;权限: doc:delete, user:manage, config:write"]
+    admin --&gt;|"extends"| editor["editor&lt;br/&gt;权限: doc:write, doc:deprecate"]
+    editor --&gt;|"extends"| viewer["viewer&lt;br/&gt;权限: doc:read"]
+</pre>
+
 <p>最终 <code>superadmin</code> 拥有 <code>*</code>（通配全部权限），<code>admin</code> 拥有 <code>doc:read, doc:write, doc:deprecate, doc:delete, user:manage, config:write</code>。</p>
 <hr>
 <h2 id="sequencejson--管理员登录序列"><a class="header" href="#sequencejson--管理员登录序列"><code>sequence.json</code> — 管理员登录序列</a></h2>
@@ -1995,7 +2530,7 @@ cp config/i18n/en.json config/i18n/ja.json
 <h1 id="存储后端"><a class="header" href="#存储后端">存储后端</a></h1>
 <p>Ducia 的存储层通过 <code>DocRepository</code> trait 抽象，支持即插即用的后端切换。框架内置两种实现，也可自行开发自定义存储后端。</p>
 <h2 id="架构概览"><a class="header" href="#架构概览">架构概览</a></h2>
-<pre><code class="language-mermaid">flowchart TD
+<pre class="mermaid">flowchart TD
     A[HTTP Handler] --&gt; B[PluginRegistry]
     B --&gt; C[StoragePlugin]
     C --&gt; D[DocRepository trait]
@@ -2005,7 +2540,8 @@ cp config/i18n/en.json config/i18n/ja.json
 
     E --&gt; H[(config/docs.json + docs/*.md)]
     F --&gt; I[(data/ducia.db)]
-</code></pre>
+</pre>
+
 <p>所有 HTTP handler 通过 <code>PluginRegistry</code> 获取存储插件，调用 <code>DocRepository</code> trait 定义的方法。框架不感知底层是文件系统还是数据库。</p>
 <hr>
 <h2 id="docrepository-trait-1"><a class="header" href="#docrepository-trait-1"><code>DocRepository</code> trait</a></h2>
@@ -2097,7 +2633,7 @@ docs/2.md
 docs/1.md                   ← 文档内容仍以文件形式存储
 docs/2.md
 </code></pre>
-<h3 id="数据库-schema"><a class="header" href="#数据库-schema">数据库 Schema</a></h3>
+<h3 id="数据库-schema-1"><a class="header" href="#数据库-schema-1">数据库 Schema</a></h3>
 <p><strong><code>docs</code> 表</strong></p>
 <div class="table-wrapper">
 <table>
@@ -2294,7 +2830,7 @@ let storage_plugin = Box::new(MyStorage::new(...)) as Box&lt;dyn DocRepository&g
 <h1 id="认证后端"><a class="header" href="#认证后端">认证后端</a></h1>
 <p>Ducia 的认证层通过 <code>AuthPlugin</code> trait 抽象，支持即插即用的认证方案。框架默认提供两种实现，也可对接外部认证系统。</p>
 <h2 id="架构概览-1"><a class="header" href="#架构概览-1">架构概览</a></h2>
-<pre><code class="language-mermaid">flowchart TD
+<pre class="mermaid">flowchart TD
     A[HTTP Request] --&gt; B{config/auth.json?}
     B --&gt;|存在| C[auth-db]
     B --&gt;|不存在| D[auth-simple]
@@ -2310,7 +2846,8 @@ let storage_plugin = Box::new(MyStorage::new(...)) as Box&lt;dyn DocRepository&g
 
     I --&gt; J[PluginRegistry]
     J --&gt; K[HTTP Handler]
-</code></pre>
+</pre>
+
 <p>认证插件通过 <code>PluginRegistry</code> 注入，handler 在需要认证的接口中通过内置 session endpoint 或自定义逻辑调用 <code>AuthPlugin</code> 方法。</p>
 <hr>
 <h2 id="authplugin-trait-1"><a class="header" href="#authplugin-trait-1"><code>AuthPlugin</code> trait</a></h2>
@@ -2365,6 +2902,16 @@ pub trait AuthPlugin: Send + Sync {
 4. 服务端生成 UUID token → 存入内存 HashMap
 5. 后续请求携带 X-Session-Token 头
 </code></pre>
+<h3 id="数制设计"><a class="header" href="#数制设计">数制设计</a></h3>
+<p>管理面板是一个 2×2 的按钮网格，数字排列为 <code>[2, 1, 3, 4]</code>：</p>
+<pre><code>┌───┬───┐
+│ 2 │ 1 │
+├───┼───┤
+│ 3 │ 4 │
+└───┴───┘
+</code></pre>
+<p>这四个数字 <strong>1-4</strong> 是五进制（base-5）的非零位。五进制使用 0,1,2,3,4 五个数字，此处 0 不在网格中意味着“无输入“。</p>
+<p><code>sequence.json</code> 中的序列 <code>[1,2,3,2,3,4]</code> 实质上是一个五进制数字串。示例密码 <code>"1234"</code> 同样是一个五进制数——它是 1×5³+2×5²+3×5+4 = 194₁₀。两条认证路径共享同一套数制基础，只是输入方式不同：前端的按钮点击和后端的密码文本，最终都归约到同一个五进制数字空间。</p>
 <h3 id="数据结构"><a class="header" href="#数据结构">数据结构</a></h3>
 <pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
@@ -2407,7 +2954,7 @@ pub trait AuthPlugin: Send + Sync {
 <h2 id="auth-db--jwt--数据库认证"><a class="header" href="#auth-db--jwt--数据库认证">auth-db — JWT + 数据库认证</a></h2>
 <p><strong>生产环境推荐方案</strong>（创建 <code>config/auth.json</code> 即可启用）。</p>
 <h3 id="工作原理-1-1"><a class="header" href="#工作原理-1-1">工作原理</a></h3>
-<pre><code class="language-mermaid">sequenceDiagram
+<pre class="mermaid">sequenceDiagram
     participant C as 客户端
     participant S as 服务端
     participant DB as SQLite
@@ -2426,7 +2973,8 @@ pub trait AuthPlugin: Send + Sync {
     C-&gt;&gt;S: Authorization: Bearer eyJ...
     S-&gt;&gt;S: JWT 解码 &amp; 过期校验
     S--&gt;&gt;C: 业务数据
-</code></pre>
+</pre>
+
 <h3 id="数据结构-1"><a class="header" href="#数据结构-1">数据结构</a></h3>
 <pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
@@ -2481,6 +3029,9 @@ pub trait AuthPlugin: Send + Sync {
 <li><strong>密码强度</strong>：至少 4 个字符</li>
 <li><strong>验证方式</strong>：<code>bcrypt::verify()</code> 常量时间比较，防时序攻击</li>
 </ul>
+<blockquote>
+<p><strong>关于示例中的 <code>"1234"</code></strong>：这不是随意选的值。数字 1-4 是管理面板按钮网格的五进制位（参见 <a href="#数制设计">auth-simple 数制设计</a>），密码 <code>"1234"</code> 与管理序列 <code>[1,2,3,2,3,4]</code> 处于同一数字空间——前者是文本密码，后者是按钮序列，但底层都是五进制数字串。<code>"1234"</code> 作为示例值既满足 4 位最低长度要求，又保持了与项目数字体系的一致性。生产环境当然要用强密码——bcrypt 负责安全存储，不依赖数字本身的强度。此外 <code>config/auth.json</code> 的 <code>jwt_secret</code> 也需从默认值更换。</p>
+</blockquote>
 <h3 id="jwt-安全"><a class="header" href="#jwt-安全">JWT 安全</a></h3>
 <ul>
 <li><strong>签名算法</strong>：HS256（HMAC-SHA256）</li>
@@ -2670,36 +3221,63 @@ curl http://127.0.0.1:3001/api/cats \
 </table>
 </div>
 <h2 id="项目结构-1"><a class="header" href="#项目结构-1">项目结构</a></h2>
-<pre><code>src/
-├── main.tsx                  # 入口：挂载 App，包裹 I18nProvider
-├── App.tsx                   # 单页路由分发
-├── components/               # 可复用 UI 组件
-│   ├── Header.tsx            #   列表页顶栏
-│   ├── DocHeader.tsx         #   文档页顶栏
-│   ├── DocItem.tsx           #   文档列表项（支持预加载）
-│   ├── DocFooter.tsx         #   文档操作栏（弃用/删除）
-│   └── DeprecatedBanner.tsx  #   弃用横幅
-├── pages/                    # 页面级组件
-│   ├── Listing.tsx           #   文档列表页
-│   ├── DocPage.tsx           #   文档阅读页
-│   └── AdminPage.tsx         #   管理认证页
-├── hooks/                    # React Hooks
-│   ├── useAdmin.ts           #   管理员认证状态
-│   ├── useCats.ts            #   文档列表数据
-│   ├── useDoc.ts             #   单文档操作
-│   ├── useI18n.tsx           #   国际化 (含 I18nProvider)
-│   ├── useStickyHeader.ts    #   吸顶顶栏
-│   └── useUpload.ts          #   文件上传
-├── types/                    # TypeScript 类型定义
-├── utils/                    # 工具函数
-│   ├── prefetch.ts           #   预加载缓存
-│   └── download.ts           #   文档下载
-├── styles/                   # 全局样式
-│   ├── tokens.css            #   设计令牌
-│   ├── global.css            #   全局重置与布局
-│   └── markdown.css          #   Markdown 渲染样式
-└── wasm/                     # WASM 模块 (构建产物的副本)
-</code></pre>
+<pre class="mermaid">flowchart TB
+    subgraph src["src/ 前端源码"]
+        main["main.tsx&lt;br/&gt;入口：挂载App，包裹I18nProvider"]
+        app["App.tsx&lt;br/&gt;单页路由分发"]
+
+        subgraph comp["components/ 可复用UI组件"]
+            Header["Header.tsx&lt;br/&gt;列表页顶栏"]
+            DocHeader["DocHeader.tsx&lt;br/&gt;文档页顶栏"]
+            DocItem["DocItem.tsx&lt;br/&gt;文档列表项（支持预加载）"]
+            DocFooter["DocFooter.tsx&lt;br/&gt;文档操作栏（弃用/删除）"]
+            DeprecatedBanner["DeprecatedBanner.tsx&lt;br/&gt;弃用横幅"]
+        end
+
+        subgraph pgs["pages/ 页面级组件"]
+            Listing["Listing.tsx&lt;br/&gt;文档列表页"]
+            DocPage["DocPage.tsx&lt;br/&gt;文档阅读页"]
+            AdminPage["AdminPage.tsx&lt;br/&gt;管理认证页"]
+        end
+
+        subgraph hks["hooks/ React Hooks"]
+            useAdmin["useAdmin.ts&lt;br/&gt;管理员认证状态"]
+            useCats["useCats.ts&lt;br/&gt;文档列表数据"]
+            useDoc["useDoc.ts&lt;br/&gt;单文档操作"]
+            useI18n["useI18n.tsx&lt;br/&gt;国际化（含I18nProvider）"]
+            useStickyHeader["useStickyHeader.ts&lt;br/&gt;吸顶顶栏"]
+            useUpload["useUpload.ts&lt;br/&gt;文件上传"]
+        end
+
+        subgraph typs["types/"]
+            types_def["TypeScript 类型定义"]
+        end
+
+        subgraph utls["utils/ 工具函数"]
+            prefetch["prefetch.ts&lt;br/&gt;预加载缓存"]
+            download["download.ts&lt;br/&gt;文档下载"]
+        end
+
+        subgraph stys["styles/ 全局样式"]
+            tokens["tokens.css&lt;br/&gt;设计令牌"]
+            global_css["global.css&lt;br/&gt;全局重置与布局"]
+            md_css["markdown.css&lt;br/&gt;Markdown渲染样式"]
+        end
+
+        subgraph wsm["wasm/"]
+            wasm_mod["WASM模块（构建产物副本）"]
+        end
+    end
+
+    main --&gt; app
+    app --&gt; comp
+    app --&gt; pgs
+    pgs --&gt; hks
+    pgs --&gt; utls
+    pgs --&gt; typs
+    main --&gt; stys
+</pre>
+
 <h2 id="路由设计"><a class="header" href="#路由设计">路由设计</a></h2>
 <p>Ducia 是一个<strong>单页应用 (SPA)</strong>，不使用 React Router，而是直接读取 <code>location.pathname</code> 进行路由分发：</p>
 <div class="table-wrapper">
@@ -2723,7 +3301,7 @@ curl http://127.0.0.1:3001/api/cats \
 <li>用 <code>I18nProvider</code> 包裹整个应用</li>
 <li>渲染 <code>App</code> 到 <code>#root</code></li>
 </ol>
-<pre><code class="language-tsx">ReactDOM.createRoot(document.getElementById("root")!).render(
+<pre><code class="language-typescript">ReactDOM.createRoot(document.getElementById("root")!).render(
     &lt;I18nProvider&gt;
         &lt;App /&gt;
     &lt;/I18nProvider&gt;,
@@ -2747,7 +3325,7 @@ curl http://127.0.0.1:3001/api/cats \
 </ul>
 <h3 id="docitem"><a class="header" href="#docitem">DocItem</a></h3>
 <p>文档列表项组件，在 <code>onMouseEnter</code> 时触发预加载缓存：</p>
-<pre><code class="language-tsx">onMouseEnter={() =&gt; prefetchDoc(cat.id)}
+<pre><code class="language-typescript">onMouseEnter={() =&gt; prefetchDoc(cat.id)}
 </code></pre>
 <h3 id="docfooter"><a class="header" href="#docfooter">DocFooter</a></h3>
 <p>文档底部操作栏，管理员可见“标记弃用“和“删除“按钮。删除操作使用<strong>二次确认</strong>机制：首次点击显示“确认删除“，3 秒后自动恢复。</p>
@@ -2803,8 +3381,13 @@ curl http://127.0.0.1:3001/api/cats \
 <li><code>global.css</code>: 重置样式、基础排版、布局</li>
 <li><code>markdown.css</code>: Markdown 渲染内容样式（标题、表格、代码块、引用块等）</li>
 </ul>
-<h2 id="markdown-渲染"><a class="header" href="#markdown-渲染">Markdown 渲染</a></h2>
-<p>文档内容渲染基于 <a href="https://github.com/remarkjs/react-markdown">react-markdown</a>，插件栈：</p>
+<h2 id="文档渲染formatregistry"><a class="header" href="#文档渲染formatregistry">文档渲染（FormatRegistry）</a></h2>
+<p>文档渲染不再硬编码 react-markdown，而是通过 <strong>FormatRegistry</strong> 模式，根据文件扩展名/格式动态选择渲染器：</p>
+<ul>
+<li><strong><code>src/rendering/registry.ts</code></strong> — <code>FormatRegistry</code> 类，提供 <code>register()</code> 注册格式、<code>resolveByFilename()</code> 根据文件名匹配渲染器</li>
+<li><strong><code>src/rendering/defaults.tsx</code></strong> — 默认注册 <code>Markdown</code> 和 <code>PlainText</code> 两种格式</li>
+</ul>
+<p>Markdown 是默认注册的格式之一（<code>isDefault: true</code>），其渲染基于 <a href="https://github.com/remarkjs/react-markdown">react-markdown</a>，插件栈：</p>
 <div class="table-wrapper">
 <table>
 <thead>
@@ -2824,6 +3407,9 @@ curl http://127.0.0.1:3001/api/cats \
 <li>GFM 表格、任务列表等由 remark-gfm 处理</li>
 </ul>
 <p>KaTeX CSS 从 npm 包 <code>katex</code> 引入。</p>
+<blockquote>
+<p>通过 <code>formatRegistry.register({format, name, extensions, component})</code> 可注册新的渲染格式（如 AsciiDoc、reStructuredText 等）。<code>DocPage</code> 在渲染时调用 <code>formatRegistry.resolveByFilename(doc.file)</code> 自动匹配对应渲染器。</p>
+</blockquote>
 <h2 id="vite-开发代理"><a class="header" href="#vite-开发代理">Vite 开发代理</a></h2>
 <p>Vite 开发服务器配置了 API 代理，将 <code>/api</code> 请求转发到后端：</p>
 <pre><code class="language-js">// vite.config.js
@@ -3167,49 +3753,62 @@ cargo test -p ducia-auth-db
 </code></pre>
 <hr>
 <h2 id="项目布局"><a class="header" href="#项目布局">项目布局</a></h2>
-<pre><code>ducia-listing-framework/
-├── config/                    # 运行时配置
-│   ├── auth.json              #   JWT 密钥与用户存储配置
-│   ├── roles.json             #   动态角色 → 权限映射
-│   ├── sequence.json          #   序列码认证配置
-│   ├── settings.json          #   功能开关
-│   └── i18n/                  #   语言资源文件 (zh-CN.json, en.json …)
-├── backend/
-│   ├── ducia-core/            # 框架核心 (trait 定义: DocStorage, AuthProvider …)
-│   ├── plugins/
-│   │   ├── auth-simple/       #   序列码认证插件
-│   │   ├── auth-db/           #   JWT + 数据库认证插件
-│   │   ├── storage-fs/        #   文件系统存储插件
-│   │   └── storage-sqlite/    #   SQLite 存储插件
-│   ├── server/                # Actix-web 二进制入口 (路由、中间件、启动)
-│   └── wasm/                  # WASM 共享逻辑 (Markdown 渲染、序列验证)
-├── src/                       # 前端源码
-│   ├── main.tsx               #   入口
-│   ├── App.tsx                #   路由分发
-│   ├── components/            #   UI 组件
-│   ├── pages/                 #   页面
-│   ├── hooks/                 #   React Hooks
-│   ├── types/                 #   TypeScript 类型
-│   ├── utils/                 #   工具函数
-│   ├── styles/                #   全局样式
-│   └── wasm/                  #   WASM 模块的副本
-├── public/                    # 静态资源 (图标、WASM 二进制)
-├── scripts/                   # 开发与部署脚本
-│   ├── run-dev.sh             #   启动开发环境
-│   ├── stop-dev.sh            #   停止开发环境
-│   └── setup_dev_env.sh       #   初始化开发环境
-├── book/                      # 本书源码 (mdBook)
-│   ├── book.toml              #   mdBook 配置
-│   └── src/                   #   各章节 .md 文件
-├── data/                      # 运行时数据目录 (SQLite 数据库文件)
-├── docs/                      # 文档内容目录 (Markdown 文件存放)
-├── dist/                      # 前端生产构建产物
-├── backend/src/               # 后端共享工具代码
-├── vite.config.js             # Vite 配置
-├── tsconfig.json              # TypeScript 配置
-├── package.json               # 前端依赖与脚本
-└── Cargo.toml                 # Rust 工作区清单 (workspace)
-</code></pre>
+<pre class="mermaid">flowchart TB
+    subgraph root["ducia-listing-framework/"]
+        subgraph cfg["config/ 运行时配置"]
+            auth["auth.json&lt;br/&gt;JWT密钥与用户存储配置"]
+            roles["roles.json&lt;br/&gt;动态角色→权限映射"]
+            seq["sequence.json&lt;br/&gt;序列码认证配置"]
+            settings["settings.json&lt;br/&gt;功能开关"]
+            i18n["i18n/&lt;br/&gt;语言资源文件"]
+        end
+
+        subgraph be["backend/ 后端"]
+            subgraph core["ducia-core/ 框架核心"]
+                traits["trait定义&lt;br/&gt;DocStorage, AuthProvider…"]
+            end
+
+            subgraph plugins["plugins/ 插件"]
+                auth_simple["auth-simple/&lt;br/&gt;序列码认证插件"]
+                auth_db["auth-db/&lt;br/&gt;JWT+数据库认证插件"]
+                storage_fs["storage-fs/&lt;br/&gt;文件系统存储插件"]
+                storage_sqlite["storage-sqlite/&lt;br/&gt;SQLite存储插件"]
+            end
+
+            srv["server/&lt;br/&gt;Actix-web入口&lt;br/&gt;路由、中间件、启动"]
+            wasm_be["wasm/&lt;br/&gt;WASM共享逻辑&lt;br/&gt;Markdown渲染、序列验证"]
+        end
+
+        subgraph fe["src/ 前端源码"]
+            main_tsx["main.tsx 入口"]
+            app_tsx["App.tsx 路由分发"]
+            comp_fe["components/ UI组件"]
+            pgs_fe["pages/ 页面"]
+            hks_fe["hooks/ React Hooks"]
+            typs_fe["types/ TypeScript类型"]
+            utls_fe["utils/ 工具函数"]
+            stys_fe["styles/ 全局样式"]
+            wasm_fe["wasm/ WASM模块副本"]
+        end
+
+        subgraph tools["工具与文档"]
+            scripts["scripts/&lt;br/&gt;开发与部署脚本&lt;br/&gt;run-dev.sh, stop-dev.sh…"]
+            book_dir["book/&lt;br/&gt;mdBook文档源码"]
+        end
+
+        public["public/ 静态资源"]
+        data["data/ 运行时数据（SQLite）"]
+        docs["docs/ 文档内容（Markdown）"]
+        dist["dist/ 前端生产构建产物"]
+        be_src["backend/src/ 后端共享工具代码"]
+
+        vite["vite.config.js"]
+        tsconfig["tsconfig.json"]
+        package["package.json"]
+        cargo["Cargo.toml"]
+    end
+</pre>
+
 <h3 id="关键路径说明"><a class="header" href="#关键路径说明">关键路径说明</a></h3>
 <div class="table-wrapper">
 <table>
@@ -3437,7 +4036,7 @@ const valid = check_sequence([1, 2, 3, 2, 3, 4], [2, 3, 4])
 </tbody>
 </table>
 </div>
-<p>当前 <code>DocPage</code> 默认使用 react-markdown 渲染（通过 react-markdown + remark-gfm + remark-math + rehype-katex 插件栈）。WASM 渲染路径作为备选，未来可用于：</p>
+<p>当前渲染通过 <code>FormatRegistry</code> 统一管理：Markdown 渲染器在 <code>src/rendering/defaults.tsx</code> 中注册，作为多种可能格式之一。<code>FormatRegistry</code> 模式使得添加新格式渲染器变得简单——只需实现对应组件并注册即可。WASM 渲染路径作为备选，未来可用于：</p>
 <ul>
 <li>渲染预览（本地即可获取与后端一致的 HTML）</li>
 <li>构建时预渲染（SSG 场景）</li>
@@ -3501,6 +4100,8 @@ npm run dev
 <li><strong>auth-db 认证插件</strong>：基于 JWT + bcrypt 的用户认证，支持注册/登录/Token 刷新，用户数据可存储于文件系统或 SQLite</li>
 <li><strong>storage-sqlite 存储插件</strong>：基于 rusqlite 的 SQLite 文档存储，支持索引、搜索、软删除与弃用标记</li>
 <li><strong>WASM 共享逻辑</strong>：将 Markdown 渲染（pulldown-cmark）和序列码验证逻辑编译为 WebAssembly，前后端共享同一套 Rust 代码</li>
+<li><strong>视图注册表（ViewRegistry）</strong>：页面不再写死为 3 个，通过 URL 模式匹配动态注册</li>
+<li><strong>格式注册表（FormatRegistry）</strong>：Markdown 只是默认注册的格式之一，上传/渲染均通过注册表查找</li>
 <li><strong>配置热切换</strong>：通过 <code>config/settings.json</code> 可在文件存储 ↔ SQLite 存储之间切换，无需重新编译</li>
 <li><strong>动态角色系统</strong>：<code>config/roles.json</code> 定义角色与权限映射，框架不预设 admin/editor/viewer</li>
 </ul>
@@ -3622,6 +4223,7 @@ npm run dev
         <script src="book-a0b12cfe.js"></script>
 
         <!-- Custom JS scripts -->
+        <script src="mermaid-init-27cb93de.js"></script>
 
         <script>
         window.addEventListener('load', function() {

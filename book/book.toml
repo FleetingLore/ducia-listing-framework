@@ -4,8 +4,12 @@ authors = ["corain"]
 language = "zh-CN"
 description = "Ducia Listing Framework — 轻量级文档管理系统"
 
+[preprocessor.mermaid]
+command = "mdbook-mermaid"
+
 [output.html]
 default-theme = "light"
 preferred-dark-theme = "navy"
+additional-js = ["mermaid-init.js"]
 git-repository-url = "https://github.com/FleetingLore/ducia-listing-framework"
 edit-url-template = "https://github.com/FleetingLore/ducia-listing-framework/edit/main/book/src/{path}"

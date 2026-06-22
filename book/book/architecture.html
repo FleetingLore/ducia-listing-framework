@@ -35,7 +35,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-c9d4c122.js";
+            window.path_to_searchindex_js = "searchindex-4568314d.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-df4d3453.js"></script>
@@ -183,28 +183,29 @@
                         <h1 id="系统架构"><a class="header" href="#系统架构">系统架构</a></h1>
 <p>Ducia 采用<strong>前后端分离 + 插件化</strong>架构，后端负责 API、认证和存储，前端负责 UI 渲染和交互。</p>
 <h2 id="整体分层"><a class="header" href="#整体分层">整体分层</a></h2>
-<pre><code>┌─────────────────────────────────────────────────┐
-│                   浏览器                          │
-│         React 18 + TypeScript + Vite             │
-│     (Listing / DocPage / AdminPage)              │
-└─────────────────┬───────────────────────────────┘
-                  │ /api/*
-                  ▼
-┌─────────────────────────────────────────────────┐
-│            Vite Dev Proxy (:5173)                │
-│           → Actix-web (:3001)                    │
-└─────────────────┬───────────────────────────────┘
-                  │
-                  ▼
-┌─────────────────────────────────────────────────┐
-│              PluginRegistry                      │
-│  ┌──────────┐  ┌──────────┐  ┌───────────────┐  │
-│  │ Auth     │  │ Storage  │  │ Extras        │  │
-│  │ Plugin   │  │ Plugin   │  │ (扩展预留)     │  │
-│  └──────────┘  └──────────┘  └───────────────┘  │
-└─────────────────────────────────────────────────┘
-</code></pre>
-<p>请求路径：浏览器发起 API 请求 → Vite 开发代理转发到 <code>127.0.0.1:3001</code> → Actix-web 路由到对应 handler → handler 从 <code>AppState</code> 获取 <code>PluginRegistry</code> → 调用具体的 Auth / Storage 插件。</p>
+<pre class="mermaid">flowchart TB
+    Browser["浏览器&lt;br/&gt;React 18+TS+Vite&lt;br/&gt;Listing/DocPage/&lt;br/&gt;AdminPage"]
+    Proxy["Vite Dev Proxy (:5173)&lt;br/&gt;→ Actix-web (:3001)"]
+    Registry["PluginRegistry"]
+    Auth["Auth Plugin&lt;br/&gt;认证"]
+    Storage["Storage Plugin&lt;br/&gt;存储"]
+    Extras["Extras&lt;br/&gt;扩展预留"]
+
+    Browser --&gt;|"/api/*"| Proxy
+    Proxy --&gt; Registry
+    Registry --&gt; Auth
+    Registry --&gt; Storage
+    Registry --&gt; Extras
+</pre>
+
+<p>请求路径：</p>
+<ul>
+<li>浏览器发起 API 请求</li>
+<li>Vite 开发代理转发到 <code>127.0.0.1:3001</code></li>
+<li>Actix-web 路由到对应 handler</li>
+<li>handler 从 <code>AppState</code> 获取 <code>PluginRegistry</code></li>
+<li>调用具体的 Auth / Storage 插件</li>
+</ul>
 <h2 id="后端6-个-rust-crate"><a class="header" href="#后端6-个-rust-crate">后端：6 个 Rust Crate</a></h2>
 <div class="table-wrapper">
 <table>
@@ -228,23 +229,36 @@
 <li><code>ducia-server</code> 依赖所有 5 个 crate，在启动时按配置组装</li>
 </ul>
 <h2 id="ducia-core-内部模块"><a class="header" href="#ducia-core-内部模块">ducia-core 内部模块</a></h2>
-<pre><code class="language-text">ducia-core/src/
-├── lib.rs          # 重新导出所有公开类型
-├── doc/
-│   ├── mod.rs
-│   ├── model.rs    # DocMeta, DocFull, CreateDocRequest, DocFormat
-│   └── repo.rs     # DocRepository trait
-├── plugin/
-│   ├── mod.rs
-│   ├── auth.rs     # AuthPlugin trait + anonymous()
-│   ├── registry.rs # PluginRegistry (builder pattern)
-│   └── storage.rs  # StoragePlugin = Box&lt;dyn DocRepository&gt;
-├── perm/
-│   ├── mod.rs
-│   └── model.rs    # Identity, RoleDef, RoleConfig
-└── i18n/
-    └── mod.rs      # I18nManager
-</code></pre>
+<pre class="mermaid">flowchart TB
+    lib["lib.rs&lt;br/&gt;公共 API 重新导出"]
+
+    subgraph doc["doc/ 文档模型"]
+        direction LR
+        doc_model["model.rs&lt;br/&gt;DocMeta · DocFull&lt;br/&gt;CreateDocRequest&lt;br/&gt;DocFormat"]
+        doc_repo["repo.rs&lt;br/&gt;DocRepository trait"]
+    end
+
+    subgraph plugin["plugin/ 插件系统"]
+        direction LR
+        p_auth["auth.rs&lt;br/&gt;AuthPlugin trait"]
+        p_registry["registry.rs&lt;br/&gt;PluginRegistry"]
+        p_storage["storage.rs&lt;br/&gt;StoragePlugin"]
+    end
+
+    subgraph perm["perm/ 权限引擎"]
+        perm_model["model.rs&lt;br/&gt;Identity · RoleDef&lt;br/&gt;RoleConfig"]
+    end
+
+    subgraph i18n["i18n/ 国际化"]
+        i18n_mgr["mod.rs&lt;br/&gt;I18nManager"]
+    end
+
+    lib --&gt; doc
+    lib --&gt; plugin
+    lib --&gt; perm
+    lib --&gt; i18n
+</pre>
+
 <h2 id="插件注册表pluginregistry"><a class="header" href="#插件注册表pluginregistry">插件注册表（PluginRegistry）</a></h2>
 <p><code>PluginRegistry</code> 采用 <strong>builder 模式</strong>在启动时组装：</p>
 <pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
@@ -282,8 +296,13 @@ let registry = PluginRegistry::new()
 }
 <span class="boring">}</span></code></pre>
 <h2 id="前端react-18--typescript"><a class="header" href="#前端react-18--typescript">前端：React 18 + TypeScript</a></h2>
-<h3 id="三个视图view"><a class="header" href="#三个视图view">三个视图（View）</a></h3>
-<p>前端通过 <code>location.pathname</code> 判断当前视图：</p>
+<h3 id="视图注册表viewregistry"><a class="header" href="#视图注册表viewregistry">视图注册表（ViewRegistry）</a></h3>
+<p>前端不再硬编码 3 个视图，而是采用 <strong>ViewRegistry</strong> 模式，视图按 URL 模式动态注册和匹配：</p>
+<ul>
+<li><strong><code>src/views/registry.ts</code></strong> — <code>ViewRegistry</code> 类，提供 <code>register()</code> 注册视图、<code>resolve()</code> 按当前路径匹配视图</li>
+<li><strong><code>src/views/defaults.ts</code></strong> — 默认注册 3 个视图（listing、doc、admin）</li>
+</ul>
+<p>当前已注册的默认视图及路径映射：</p>
 <div class="table-wrapper">
 <table>
 <thead>
@@ -296,6 +315,9 @@ let registry = PluginRegistry::new()
 </tbody>
 </table>
 </div>
+<blockquote>
+<p>以上 3 个视图仅为默认注册项。通过 <code>viewRegistry.register({name, match, component})</code> 即可添加新视图，路径映射完全可扩展。</p>
+</blockquote>
 <h3 id="核心-hooks"><a class="header" href="#核心-hooks">核心 Hooks</a></h3>
 <div class="table-wrapper">
 <table>
@@ -312,7 +334,7 @@ let registry = PluginRegistry::new()
 </table>
 </div>
 <h3 id="前端入口"><a class="header" href="#前端入口">前端入口</a></h3>
-<pre><code class="language-tsx">// src/main.tsx
+<pre><code class="language-typescript">// src/main.tsx
 ReactDOM.createRoot(document.getElementById("root")!).render(
     &lt;I18nProvider&gt;
         &lt;App /&gt;
@@ -396,6 +418,7 @@ export default defineConfig({
         <script src="book-a0b12cfe.js"></script>
 
         <!-- Custom JS scripts -->
+        <script src="mermaid-init-27cb93de.js"></script>
 
 
 

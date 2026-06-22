@@ -189,7 +189,7 @@ Ducia 前端同时支持两种渲染路径：
 | WASM 渲染 | pulldown-cmark (Rust) | 需要与后端输出完全一致的场景 |
 | React 渲染 | react-markdown + remark/rehype 插件 | 默认文档阅读页 |
 
-当前 `DocPage` 默认使用 react-markdown 渲染（通过 react-markdown + remark-gfm + remark-math + rehype-katex 插件栈）。WASM 渲染路径作为备选，未来可用于：
+当前渲染通过 `FormatRegistry` 统一管理：Markdown 渲染器在 `src/rendering/defaults.tsx` 中注册，作为多种可能格式之一。`FormatRegistry` 模式使得添加新格式渲染器变得简单——只需实现对应组件并注册即可。WASM 渲染路径作为备选，未来可用于：
 
 - 渲染预览（本地即可获取与后端一致的 HTML）
 - 构建时预渲染（SSG 场景）

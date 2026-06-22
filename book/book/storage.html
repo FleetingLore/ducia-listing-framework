@@ -35,7 +35,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-c9d4c122.js";
+            window.path_to_searchindex_js = "searchindex-4568314d.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-df4d3453.js"></script>
@@ -183,7 +183,7 @@
                         <h1 id="存储后端"><a class="header" href="#存储后端">存储后端</a></h1>
 <p>Ducia 的存储层通过 <code>DocRepository</code> trait 抽象，支持即插即用的后端切换。框架内置两种实现，也可自行开发自定义存储后端。</p>
 <h2 id="架构概览"><a class="header" href="#架构概览">架构概览</a></h2>
-<pre><code class="language-mermaid">flowchart TD
+<pre class="mermaid">flowchart TD
     A[HTTP Handler] --&gt; B[PluginRegistry]
     B --&gt; C[StoragePlugin]
     C --&gt; D[DocRepository trait]
@@ -193,7 +193,8 @@
 
     E --&gt; H[(config/docs.json + docs/*.md)]
     F --&gt; I[(data/ducia.db)]
-</code></pre>
+</pre>
+
 <p>所有 HTTP handler 通过 <code>PluginRegistry</code> 获取存储插件，调用 <code>DocRepository</code> trait 定义的方法。框架不感知底层是文件系统还是数据库。</p>
 <hr>
 <h2 id="docrepository-trait"><a class="header" href="#docrepository-trait"><code>DocRepository</code> trait</a></h2>
@@ -530,6 +531,7 @@ let storage_plugin = Box::new(MyStorage::new(...)) as Box&lt;dyn DocRepository&g
         <script src="book-a0b12cfe.js"></script>
 
         <!-- Custom JS scripts -->
+        <script src="mermaid-init-27cb93de.js"></script>
 
 
 

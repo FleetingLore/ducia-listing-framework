@@ -14,36 +14,62 @@
 
 ## 项目结构
 
-```
-src/
-├── main.tsx                  # 入口：挂载 App，包裹 I18nProvider
-├── App.tsx                   # 单页路由分发
-├── components/               # 可复用 UI 组件
-│   ├── Header.tsx            #   列表页顶栏
-│   ├── DocHeader.tsx         #   文档页顶栏
-│   ├── DocItem.tsx           #   文档列表项（支持预加载）
-│   ├── DocFooter.tsx         #   文档操作栏（弃用/删除）
-│   └── DeprecatedBanner.tsx  #   弃用横幅
-├── pages/                    # 页面级组件
-│   ├── Listing.tsx           #   文档列表页
-│   ├── DocPage.tsx           #   文档阅读页
-│   └── AdminPage.tsx         #   管理认证页
-├── hooks/                    # React Hooks
-│   ├── useAdmin.ts           #   管理员认证状态
-│   ├── useCats.ts            #   文档列表数据
-│   ├── useDoc.ts             #   单文档操作
-│   ├── useI18n.tsx           #   国际化 (含 I18nProvider)
-│   ├── useStickyHeader.ts    #   吸顶顶栏
-│   └── useUpload.ts          #   文件上传
-├── types/                    # TypeScript 类型定义
-├── utils/                    # 工具函数
-│   ├── prefetch.ts           #   预加载缓存
-│   └── download.ts           #   文档下载
-├── styles/                   # 全局样式
-│   ├── tokens.css            #   设计令牌
-│   ├── global.css            #   全局重置与布局
-│   └── markdown.css          #   Markdown 渲染样式
-└── wasm/                     # WASM 模块 (构建产物的副本)
+```mermaid
+flowchart TB
+    subgraph src["src/ 前端源码"]
+        main["main.tsx<br/>入口：挂载App，包裹I18nProvider"]
+        app["App.tsx<br/>单页路由分发"]
+
+        subgraph comp["components/ 可复用UI组件"]
+            Header["Header.tsx<br/>列表页顶栏"]
+            DocHeader["DocHeader.tsx<br/>文档页顶栏"]
+            DocItem["DocItem.tsx<br/>文档列表项（支持预加载）"]
+            DocFooter["DocFooter.tsx<br/>文档操作栏（弃用/删除）"]
+            DeprecatedBanner["DeprecatedBanner.tsx<br/>弃用横幅"]
+        end
+
+        subgraph pgs["pages/ 页面级组件"]
+            Listing["Listing.tsx<br/>文档列表页"]
+            DocPage["DocPage.tsx<br/>文档阅读页"]
+            AdminPage["AdminPage.tsx<br/>管理认证页"]
+        end
+
+        subgraph hks["hooks/ React Hooks"]
+            useAdmin["useAdmin.ts<br/>管理员认证状态"]
+            useCats["useCats.ts<br/>文档列表数据"]
+            useDoc["useDoc.ts<br/>单文档操作"]
+            useI18n["useI18n.tsx<br/>国际化（含I18nProvider）"]
+            useStickyHeader["useStickyHeader.ts<br/>吸顶顶栏"]
+            useUpload["useUpload.ts<br/>文件上传"]
+        end
+
+        subgraph typs["types/"]
+            types_def["TypeScript 类型定义"]
+        end
+
+        subgraph utls["utils/ 工具函数"]
+            prefetch["prefetch.ts<br/>预加载缓存"]
+            download["download.ts<br/>文档下载"]
+        end
+
+        subgraph stys["styles/ 全局样式"]
+            tokens["tokens.css<br/>设计令牌"]
+            global_css["global.css<br/>全局重置与布局"]
+            md_css["markdown.css<br/>Markdown渲染样式"]
+        end
+
+        subgraph wsm["wasm/"]
+            wasm_mod["WASM模块（构建产物副本）"]
+        end
+    end
+
+    main --> app
+    app --> comp
+    app --> pgs
+    pgs --> hks
+    pgs --> utls
+    pgs --> typs
+    main --> stys
 ```
 
 ## 路由设计
@@ -67,7 +93,7 @@ Ducia 是一个**单页应用 (SPA)**，不使用 React Router，而是直接读
 2. 用 `I18nProvider` 包裹整个应用
 3. 渲染 `App` 到 `#root`
 
-```tsx
+```typescript
 ReactDOM.createRoot(document.getElementById("root")!).render(
     <I18nProvider>
         <App />
@@ -98,7 +124,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
 
 文档列表项组件，在 `onMouseEnter` 时触发预加载缓存：
 
-```tsx
+```typescript
 onMouseEnter={() => prefetchDoc(cat.id)}
 ```
 
@@ -170,9 +196,14 @@ const cache = new Map<string, DocFull | Promise<DocFull | null>>()
 - `global.css`: 重置样式、基础排版、布局
 - `markdown.css`: Markdown 渲染内容样式（标题、表格、代码块、引用块等）
 
-## Markdown 渲染
+## 文档渲染（FormatRegistry）
 
-文档内容渲染基于 [react-markdown](https://github.com/remarkjs/react-markdown)，插件栈：
+文档渲染不再硬编码 react-markdown，而是通过 **FormatRegistry** 模式，根据文件扩展名/格式动态选择渲染器：
+
+- **`src/rendering/registry.ts`** — `FormatRegistry` 类，提供 `register()` 注册格式、`resolveByFilename()` 根据文件名匹配渲染器
+- **`src/rendering/defaults.tsx`** — 默认注册 `Markdown` 和 `PlainText` 两种格式
+
+Markdown 是默认注册的格式之一（`isDefault: true`），其渲染基于 [react-markdown](https://github.com/remarkjs/react-markdown)，插件栈：
 
 | 插件 | 功能 |
 |------|------|
@@ -187,6 +218,8 @@ const cache = new Map<string, DocFull | Promise<DocFull | null>>()
 - GFM 表格、任务列表等由 remark-gfm 处理
 
 KaTeX CSS 从 npm 包 `katex` 引入。
+
+> 通过 `formatRegistry.register({format, name, extensions, component})` 可注册新的渲染格式（如 AsciiDoc、reStructuredText 等）。`DocPage` 在渲染时调用 `formatRegistry.resolveByFilename(doc.file)` 自动匹配对应渲染器。
 
 ## Vite 开发代理
 

@@ -35,7 +35,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-c9d4c122.js";
+            window.path_to_searchindex_js = "searchindex-4568314d.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-df4d3453.js"></script>
@@ -199,36 +199,63 @@
 </table>
 </div>
 <h2 id="项目结构"><a class="header" href="#项目结构">项目结构</a></h2>
-<pre><code>src/
-├── main.tsx                  # 入口：挂载 App，包裹 I18nProvider
-├── App.tsx                   # 单页路由分发
-├── components/               # 可复用 UI 组件
-│   ├── Header.tsx            #   列表页顶栏
-│   ├── DocHeader.tsx         #   文档页顶栏
-│   ├── DocItem.tsx           #   文档列表项（支持预加载）
-│   ├── DocFooter.tsx         #   文档操作栏（弃用/删除）
-│   └── DeprecatedBanner.tsx  #   弃用横幅
-├── pages/                    # 页面级组件
-│   ├── Listing.tsx           #   文档列表页
-│   ├── DocPage.tsx           #   文档阅读页
-│   └── AdminPage.tsx         #   管理认证页
-├── hooks/                    # React Hooks
-│   ├── useAdmin.ts           #   管理员认证状态
-│   ├── useCats.ts            #   文档列表数据
-│   ├── useDoc.ts             #   单文档操作
-│   ├── useI18n.tsx           #   国际化 (含 I18nProvider)
-│   ├── useStickyHeader.ts    #   吸顶顶栏
-│   └── useUpload.ts          #   文件上传
-├── types/                    # TypeScript 类型定义
-├── utils/                    # 工具函数
-│   ├── prefetch.ts           #   预加载缓存
-│   └── download.ts           #   文档下载
-├── styles/                   # 全局样式
-│   ├── tokens.css            #   设计令牌
-│   ├── global.css            #   全局重置与布局
-│   └── markdown.css          #   Markdown 渲染样式
-└── wasm/                     # WASM 模块 (构建产物的副本)
-</code></pre>
+<pre class="mermaid">flowchart TB
+    subgraph src["src/ 前端源码"]
+        main["main.tsx&lt;br/&gt;入口：挂载App，包裹I18nProvider"]
+        app["App.tsx&lt;br/&gt;单页路由分发"]
+
+        subgraph comp["components/ 可复用UI组件"]
+            Header["Header.tsx&lt;br/&gt;列表页顶栏"]
+            DocHeader["DocHeader.tsx&lt;br/&gt;文档页顶栏"]
+            DocItem["DocItem.tsx&lt;br/&gt;文档列表项（支持预加载）"]
+            DocFooter["DocFooter.tsx&lt;br/&gt;文档操作栏（弃用/删除）"]
+            DeprecatedBanner["DeprecatedBanner.tsx&lt;br/&gt;弃用横幅"]
+        end
+
+        subgraph pgs["pages/ 页面级组件"]
+            Listing["Listing.tsx&lt;br/&gt;文档列表页"]
+            DocPage["DocPage.tsx&lt;br/&gt;文档阅读页"]
+            AdminPage["AdminPage.tsx&lt;br/&gt;管理认证页"]
+        end
+
+        subgraph hks["hooks/ React Hooks"]
+            useAdmin["useAdmin.ts&lt;br/&gt;管理员认证状态"]
+            useCats["useCats.ts&lt;br/&gt;文档列表数据"]
+            useDoc["useDoc.ts&lt;br/&gt;单文档操作"]
+            useI18n["useI18n.tsx&lt;br/&gt;国际化（含I18nProvider）"]
+            useStickyHeader["useStickyHeader.ts&lt;br/&gt;吸顶顶栏"]
+            useUpload["useUpload.ts&lt;br/&gt;文件上传"]
+        end
+
+        subgraph typs["types/"]
+            types_def["TypeScript 类型定义"]
+        end
+
+        subgraph utls["utils/ 工具函数"]
+            prefetch["prefetch.ts&lt;br/&gt;预加载缓存"]
+            download["download.ts&lt;br/&gt;文档下载"]
+        end
+
+        subgraph stys["styles/ 全局样式"]
+            tokens["tokens.css&lt;br/&gt;设计令牌"]
+            global_css["global.css&lt;br/&gt;全局重置与布局"]
+            md_css["markdown.css&lt;br/&gt;Markdown渲染样式"]
+        end
+
+        subgraph wsm["wasm/"]
+            wasm_mod["WASM模块（构建产物副本）"]
+        end
+    end
+
+    main --&gt; app
+    app --&gt; comp
+    app --&gt; pgs
+    pgs --&gt; hks
+    pgs --&gt; utls
+    pgs --&gt; typs
+    main --&gt; stys
+</pre>
+
 <h2 id="路由设计"><a class="header" href="#路由设计">路由设计</a></h2>
 <p>Ducia 是一个<strong>单页应用 (SPA)</strong>，不使用 React Router，而是直接读取 <code>location.pathname</code> 进行路由分发：</p>
 <div class="table-wrapper">
@@ -252,7 +279,7 @@
 <li>用 <code>I18nProvider</code> 包裹整个应用</li>
 <li>渲染 <code>App</code> 到 <code>#root</code></li>
 </ol>
-<pre><code class="language-tsx">ReactDOM.createRoot(document.getElementById("root")!).render(
+<pre><code class="language-typescript">ReactDOM.createRoot(document.getElementById("root")!).render(
     &lt;I18nProvider&gt;
         &lt;App /&gt;
     &lt;/I18nProvider&gt;,
@@ -276,7 +303,7 @@
 </ul>
 <h3 id="docitem"><a class="header" href="#docitem">DocItem</a></h3>
 <p>文档列表项组件，在 <code>onMouseEnter</code> 时触发预加载缓存：</p>
-<pre><code class="language-tsx">onMouseEnter={() =&gt; prefetchDoc(cat.id)}
+<pre><code class="language-typescript">onMouseEnter={() =&gt; prefetchDoc(cat.id)}
 </code></pre>
 <h3 id="docfooter"><a class="header" href="#docfooter">DocFooter</a></h3>
 <p>文档底部操作栏，管理员可见“标记弃用“和“删除“按钮。删除操作使用<strong>二次确认</strong>机制：首次点击显示“确认删除“，3 秒后自动恢复。</p>
@@ -332,8 +359,13 @@
 <li><code>global.css</code>: 重置样式、基础排版、布局</li>
 <li><code>markdown.css</code>: Markdown 渲染内容样式（标题、表格、代码块、引用块等）</li>
 </ul>
-<h2 id="markdown-渲染"><a class="header" href="#markdown-渲染">Markdown 渲染</a></h2>
-<p>文档内容渲染基于 <a href="https://github.com/remarkjs/react-markdown">react-markdown</a>，插件栈：</p>
+<h2 id="文档渲染formatregistry"><a class="header" href="#文档渲染formatregistry">文档渲染（FormatRegistry）</a></h2>
+<p>文档渲染不再硬编码 react-markdown，而是通过 <strong>FormatRegistry</strong> 模式，根据文件扩展名/格式动态选择渲染器：</p>
+<ul>
+<li><strong><code>src/rendering/registry.ts</code></strong> — <code>FormatRegistry</code> 类，提供 <code>register()</code> 注册格式、<code>resolveByFilename()</code> 根据文件名匹配渲染器</li>
+<li><strong><code>src/rendering/defaults.tsx</code></strong> — 默认注册 <code>Markdown</code> 和 <code>PlainText</code> 两种格式</li>
+</ul>
+<p>Markdown 是默认注册的格式之一（<code>isDefault: true</code>），其渲染基于 <a href="https://github.com/remarkjs/react-markdown">react-markdown</a>，插件栈：</p>
 <div class="table-wrapper">
 <table>
 <thead>
@@ -353,6 +385,9 @@
 <li>GFM 表格、任务列表等由 remark-gfm 处理</li>
 </ul>
 <p>KaTeX CSS 从 npm 包 <code>katex</code> 引入。</p>
+<blockquote>
+<p>通过 <code>formatRegistry.register({format, name, extensions, component})</code> 可注册新的渲染格式（如 AsciiDoc、reStructuredText 等）。<code>DocPage</code> 在渲染时调用 <code>formatRegistry.resolveByFilename(doc.file)</code> 自动匹配对应渲染器。</p>
+</blockquote>
 <h2 id="vite-开发代理"><a class="header" href="#vite-开发代理">Vite 开发代理</a></h2>
 <p>Vite 开发服务器配置了 API 代理，将 <code>/api</code> 请求转发到后端：</p>
 <pre><code class="language-js">// vite.config.js
@@ -415,6 +450,7 @@ server: {
         <script src="book-a0b12cfe.js"></script>
 
         <!-- Custom JS scripts -->
+        <script src="mermaid-init-27cb93de.js"></script>
 
 
 

@@ -88,15 +88,11 @@
 
 框架在构建用户身份时，递归展开继承链并合并所有权限。以 `superadmin` 为例：
 
-```
-superadmin
-  ├── extends admin
-  │     ├── permissions: [doc:delete, user:manage, config:write]
-  │     └── extends editor
-  │           ├── permissions: [doc:write, doc:deprecate]
-  │           └── extends viewer
-  │                 └── permissions: [doc:read]
-  └── permissions: [*]
+```mermaid
+flowchart LR
+    superadmin["superadmin<br/>权限: *"] -->|"extends"| admin["admin<br/>权限: doc:delete, user:manage, config:write"]
+    admin -->|"extends"| editor["editor<br/>权限: doc:write, doc:deprecate"]
+    editor -->|"extends"| viewer["viewer<br/>权限: doc:read"]
 ```
 
 最终 `superadmin` 拥有 `*`（通配全部权限），`admin` 拥有 `doc:read, doc:write, doc:deprecate, doc:delete, user:manage, config:write`。

@@ -35,7 +35,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-c9d4c122.js";
+            window.path_to_searchindex_js = "searchindex-4568314d.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-df4d3453.js"></script>
@@ -350,7 +350,7 @@ const valid = check_sequence([1, 2, 3, 2, 3, 4], [2, 3, 4])
 </tbody>
 </table>
 </div>
-<p>当前 <code>DocPage</code> 默认使用 react-markdown 渲染（通过 react-markdown + remark-gfm + remark-math + rehype-katex 插件栈）。WASM 渲染路径作为备选，未来可用于：</p>
+<p>当前渲染通过 <code>FormatRegistry</code> 统一管理：Markdown 渲染器在 <code>src/rendering/defaults.tsx</code> 中注册，作为多种可能格式之一。<code>FormatRegistry</code> 模式使得添加新格式渲染器变得简单——只需实现对应组件并注册即可。WASM 渲染路径作为备选，未来可用于：</p>
 <ul>
 <li>渲染预览（本地即可获取与后端一致的 HTML）</li>
 <li>构建时预渲染（SSG 场景）</li>
@@ -454,6 +454,7 @@ npm run dev
         <script src="book-a0b12cfe.js"></script>
 
         <!-- Custom JS scripts -->
+        <script src="mermaid-init-27cb93de.js"></script>
 
 
 

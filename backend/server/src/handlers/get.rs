@@ -1,14 +1,16 @@
-use actix_web::{web, HttpResponse, Responder};
 use crate::state::AppState;
+use actix_web::{HttpResponse, Responder, web};
 
 /// GET /api/cats/{id} — 获取单篇文档
 pub async fn get_cat(path: web::Path<String>, state: web::Data<AppState>) -> impl Responder {
     let id = path.into_inner();
     let storage = match state.plugins.storage() {
         Some(s) => s,
-        None => return HttpResponse::InternalServerError().json(serde_json::json!({
-            "success": false
-        })),
+        None => {
+            return HttpResponse::InternalServerError().json(serde_json::json!({
+                "success": false
+            }));
+        }
     };
 
     match storage.get_doc(&id).await {
@@ -17,6 +19,7 @@ pub async fn get_cat(path: web::Path<String>, state: web::Data<AppState>) -> imp
             "data": {
                 "id": doc.id,
                 "title": doc.title,
+                "file": format!("{}.md", doc.id),
                 "content": doc.content,
                 "created_at": doc.created_at,
                 "deprecated": doc.deprecated,

@@ -35,7 +35,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-c9d4c122.js";
+            window.path_to_searchindex_js = "searchindex-4568314d.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-df4d3453.js"></script>
@@ -300,49 +300,62 @@ cargo test -p ducia-auth-db
 </code></pre>
 <hr>
 <h2 id="项目布局"><a class="header" href="#项目布局">项目布局</a></h2>
-<pre><code>ducia-listing-framework/
-├── config/                    # 运行时配置
-│   ├── auth.json              #   JWT 密钥与用户存储配置
-│   ├── roles.json             #   动态角色 → 权限映射
-│   ├── sequence.json          #   序列码认证配置
-│   ├── settings.json          #   功能开关
-│   └── i18n/                  #   语言资源文件 (zh-CN.json, en.json …)
-├── backend/
-│   ├── ducia-core/            # 框架核心 (trait 定义: DocStorage, AuthProvider …)
-│   ├── plugins/
-│   │   ├── auth-simple/       #   序列码认证插件
-│   │   ├── auth-db/           #   JWT + 数据库认证插件
-│   │   ├── storage-fs/        #   文件系统存储插件
-│   │   └── storage-sqlite/    #   SQLite 存储插件
-│   ├── server/                # Actix-web 二进制入口 (路由、中间件、启动)
-│   └── wasm/                  # WASM 共享逻辑 (Markdown 渲染、序列验证)
-├── src/                       # 前端源码
-│   ├── main.tsx               #   入口
-│   ├── App.tsx                #   路由分发
-│   ├── components/            #   UI 组件
-│   ├── pages/                 #   页面
-│   ├── hooks/                 #   React Hooks
-│   ├── types/                 #   TypeScript 类型
-│   ├── utils/                 #   工具函数
-│   ├── styles/                #   全局样式
-│   └── wasm/                  #   WASM 模块的副本
-├── public/                    # 静态资源 (图标、WASM 二进制)
-├── scripts/                   # 开发与部署脚本
-│   ├── run-dev.sh             #   启动开发环境
-│   ├── stop-dev.sh            #   停止开发环境
-│   └── setup_dev_env.sh       #   初始化开发环境
-├── book/                      # 本书源码 (mdBook)
-│   ├── book.toml              #   mdBook 配置
-│   └── src/                   #   各章节 .md 文件
-├── data/                      # 运行时数据目录 (SQLite 数据库文件)
-├── docs/                      # 文档内容目录 (Markdown 文件存放)
-├── dist/                      # 前端生产构建产物
-├── backend/src/               # 后端共享工具代码
-├── vite.config.js             # Vite 配置
-├── tsconfig.json              # TypeScript 配置
-├── package.json               # 前端依赖与脚本
-└── Cargo.toml                 # Rust 工作区清单 (workspace)
-</code></pre>
+<pre class="mermaid">flowchart TB
+    subgraph root["ducia-listing-framework/"]
+        subgraph cfg["config/ 运行时配置"]
+            auth["auth.json&lt;br/&gt;JWT密钥与用户存储配置"]
+            roles["roles.json&lt;br/&gt;动态角色→权限映射"]
+            seq["sequence.json&lt;br/&gt;序列码认证配置"]
+            settings["settings.json&lt;br/&gt;功能开关"]
+            i18n["i18n/&lt;br/&gt;语言资源文件"]
+        end
+
+        subgraph be["backend/ 后端"]
+            subgraph core["ducia-core/ 框架核心"]
+                traits["trait定义&lt;br/&gt;DocStorage, AuthProvider…"]
+            end
+
+            subgraph plugins["plugins/ 插件"]
+                auth_simple["auth-simple/&lt;br/&gt;序列码认证插件"]
+                auth_db["auth-db/&lt;br/&gt;JWT+数据库认证插件"]
+                storage_fs["storage-fs/&lt;br/&gt;文件系统存储插件"]
+                storage_sqlite["storage-sqlite/&lt;br/&gt;SQLite存储插件"]
+            end
+
+            srv["server/&lt;br/&gt;Actix-web入口&lt;br/&gt;路由、中间件、启动"]
+            wasm_be["wasm/&lt;br/&gt;WASM共享逻辑&lt;br/&gt;Markdown渲染、序列验证"]
+        end
+
+        subgraph fe["src/ 前端源码"]
+            main_tsx["main.tsx 入口"]
+            app_tsx["App.tsx 路由分发"]
+            comp_fe["components/ UI组件"]
+            pgs_fe["pages/ 页面"]
+            hks_fe["hooks/ React Hooks"]
+            typs_fe["types/ TypeScript类型"]
+            utls_fe["utils/ 工具函数"]
+            stys_fe["styles/ 全局样式"]
+            wasm_fe["wasm/ WASM模块副本"]
+        end
+
+        subgraph tools["工具与文档"]
+            scripts["scripts/&lt;br/&gt;开发与部署脚本&lt;br/&gt;run-dev.sh, stop-dev.sh…"]
+            book_dir["book/&lt;br/&gt;mdBook文档源码"]
+        end
+
+        public["public/ 静态资源"]
+        data["data/ 运行时数据（SQLite）"]
+        docs["docs/ 文档内容（Markdown）"]
+        dist["dist/ 前端生产构建产物"]
+        be_src["backend/src/ 后端共享工具代码"]
+
+        vite["vite.config.js"]
+        tsconfig["tsconfig.json"]
+        package["package.json"]
+        cargo["Cargo.toml"]
+    end
+</pre>
+
 <h3 id="关键路径说明"><a class="header" href="#关键路径说明">关键路径说明</a></h3>
 <div class="table-wrapper">
 <table>
@@ -451,6 +464,7 @@ npx tsc --noEmit
         <script src="book-a0b12cfe.js"></script>
 
         <!-- Custom JS scripts -->
+        <script src="mermaid-init-27cb93de.js"></script>
 
 
 

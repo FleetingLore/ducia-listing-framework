@@ -175,49 +175,61 @@ npm install -D eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin
 
 ## 项目布局
 
-```
-ducia-listing-framework/
-├── config/                    # 运行时配置
-│   ├── auth.json              #   JWT 密钥与用户存储配置
-│   ├── roles.json             #   动态角色 → 权限映射
-│   ├── sequence.json          #   序列码认证配置
-│   ├── settings.json          #   功能开关
-│   └── i18n/                  #   语言资源文件 (zh-CN.json, en.json …)
-├── backend/
-│   ├── ducia-core/            # 框架核心 (trait 定义: DocStorage, AuthProvider …)
-│   ├── plugins/
-│   │   ├── auth-simple/       #   序列码认证插件
-│   │   ├── auth-db/           #   JWT + 数据库认证插件
-│   │   ├── storage-fs/        #   文件系统存储插件
-│   │   └── storage-sqlite/    #   SQLite 存储插件
-│   ├── server/                # Actix-web 二进制入口 (路由、中间件、启动)
-│   └── wasm/                  # WASM 共享逻辑 (Markdown 渲染、序列验证)
-├── src/                       # 前端源码
-│   ├── main.tsx               #   入口
-│   ├── App.tsx                #   路由分发
-│   ├── components/            #   UI 组件
-│   ├── pages/                 #   页面
-│   ├── hooks/                 #   React Hooks
-│   ├── types/                 #   TypeScript 类型
-│   ├── utils/                 #   工具函数
-│   ├── styles/                #   全局样式
-│   └── wasm/                  #   WASM 模块的副本
-├── public/                    # 静态资源 (图标、WASM 二进制)
-├── scripts/                   # 开发与部署脚本
-│   ├── run-dev.sh             #   启动开发环境
-│   ├── stop-dev.sh            #   停止开发环境
-│   └── setup_dev_env.sh       #   初始化开发环境
-├── book/                      # 本书源码 (mdBook)
-│   ├── book.toml              #   mdBook 配置
-│   └── src/                   #   各章节 .md 文件
-├── data/                      # 运行时数据目录 (SQLite 数据库文件)
-├── docs/                      # 文档内容目录 (Markdown 文件存放)
-├── dist/                      # 前端生产构建产物
-├── backend/src/               # 后端共享工具代码
-├── vite.config.js             # Vite 配置
-├── tsconfig.json              # TypeScript 配置
-├── package.json               # 前端依赖与脚本
-└── Cargo.toml                 # Rust 工作区清单 (workspace)
+```mermaid
+flowchart TB
+    subgraph root["ducia-listing-framework/"]
+        subgraph cfg["config/ 运行时配置"]
+            auth["auth.json<br/>JWT密钥与用户存储配置"]
+            roles["roles.json<br/>动态角色→权限映射"]
+            seq["sequence.json<br/>序列码认证配置"]
+            settings["settings.json<br/>功能开关"]
+            i18n["i18n/<br/>语言资源文件"]
+        end
+
+        subgraph be["backend/ 后端"]
+            subgraph core["ducia-core/ 框架核心"]
+                traits["trait定义<br/>DocStorage, AuthProvider…"]
+            end
+
+            subgraph plugins["plugins/ 插件"]
+                auth_simple["auth-simple/<br/>序列码认证插件"]
+                auth_db["auth-db/<br/>JWT+数据库认证插件"]
+                storage_fs["storage-fs/<br/>文件系统存储插件"]
+                storage_sqlite["storage-sqlite/<br/>SQLite存储插件"]
+            end
+
+            srv["server/<br/>Actix-web入口<br/>路由、中间件、启动"]
+            wasm_be["wasm/<br/>WASM共享逻辑<br/>Markdown渲染、序列验证"]
+        end
+
+        subgraph fe["src/ 前端源码"]
+            main_tsx["main.tsx 入口"]
+            app_tsx["App.tsx 路由分发"]
+            comp_fe["components/ UI组件"]
+            pgs_fe["pages/ 页面"]
+            hks_fe["hooks/ React Hooks"]
+            typs_fe["types/ TypeScript类型"]
+            utls_fe["utils/ 工具函数"]
+            stys_fe["styles/ 全局样式"]
+            wasm_fe["wasm/ WASM模块副本"]
+        end
+
+        subgraph tools["工具与文档"]
+            scripts["scripts/<br/>开发与部署脚本<br/>run-dev.sh, stop-dev.sh…"]
+            book_dir["book/<br/>mdBook文档源码"]
+        end
+
+        public["public/ 静态资源"]
+        data["data/ 运行时数据（SQLite）"]
+        docs["docs/ 文档内容（Markdown）"]
+        dist["dist/ 前端生产构建产物"]
+        be_src["backend/src/ 后端共享工具代码"]
+
+        vite["vite.config.js"]
+        tsconfig["tsconfig.json"]
+        package["package.json"]
+        cargo["Cargo.toml"]
+    end
 ```
 
 ### 关键路径说明

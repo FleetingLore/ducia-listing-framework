@@ -4,30 +4,28 @@ Ducia 采用**前后端分离 + 插件化**架构，后端负责 API、认证和
 
 ## 整体分层
 
-```
-┌─────────────────────────────────────────────────┐
-│                   浏览器                          │
-│         React 18 + TypeScript + Vite             │
-│     (Listing / DocPage / AdminPage)              │
-└─────────────────┬───────────────────────────────┘
-                  │ /api/*
-                  ▼
-┌─────────────────────────────────────────────────┐
-│            Vite Dev Proxy (:5173)                │
-│           → Actix-web (:3001)                    │
-└─────────────────┬───────────────────────────────┘
-                  │
-                  ▼
-┌─────────────────────────────────────────────────┐
-│              PluginRegistry                      │
-│  ┌──────────┐  ┌──────────┐  ┌───────────────┐  │
-│  │ Auth     │  │ Storage  │  │ Extras        │  │
-│  │ Plugin   │  │ Plugin   │  │ (扩展预留)     │  │
-│  └──────────┘  └──────────┘  └───────────────┘  │
-└─────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    Browser["浏览器<br/>React 18+TS+Vite<br/>Listing/DocPage/<br/>AdminPage"]
+    Proxy["Vite Dev Proxy (:5173)<br/>→ Actix-web (:3001)"]
+    Registry["PluginRegistry"]
+    Auth["Auth Plugin<br/>认证"]
+    Storage["Storage Plugin<br/>存储"]
+    Extras["Extras<br/>扩展预留"]
+
+    Browser -->|"/api/*"| Proxy
+    Proxy --> Registry
+    Registry --> Auth
+    Registry --> Storage
+    Registry --> Extras
 ```
 
-请求路径：浏览器发起 API 请求 → Vite 开发代理转发到 `127.0.0.1:3001` → Actix-web 路由到对应 handler → handler 从 `AppState` 获取 `PluginRegistry` → 调用具体的 Auth / Storage 插件。
+请求路径：
+* 浏览器发起 API 请求
+* Vite 开发代理转发到 `127.0.0.1:3001`
+* Actix-web 路由到对应 handler
+* handler 从 `AppState` 获取 `PluginRegistry`
+* 调用具体的 Auth / Storage 插件
 
 ## 后端：6 个 Rust Crate
 
@@ -48,23 +46,35 @@ Ducia 采用**前后端分离 + 插件化**架构，后端负责 API、认证和
 
 ## ducia-core 内部模块
 
-```text
-ducia-core/src/
-├── lib.rs          # 重新导出所有公开类型
-├── doc/
-│   ├── mod.rs
-│   ├── model.rs    # DocMeta, DocFull, CreateDocRequest, DocFormat
-│   └── repo.rs     # DocRepository trait
-├── plugin/
-│   ├── mod.rs
-│   ├── auth.rs     # AuthPlugin trait + anonymous()
-│   ├── registry.rs # PluginRegistry (builder pattern)
-│   └── storage.rs  # StoragePlugin = Box<dyn DocRepository>
-├── perm/
-│   ├── mod.rs
-│   └── model.rs    # Identity, RoleDef, RoleConfig
-└── i18n/
-    └── mod.rs      # I18nManager
+```mermaid
+flowchart TB
+    lib["lib.rs<br/>公共 API 重新导出"]
+
+    subgraph doc["doc/ 文档模型"]
+        direction LR
+        doc_model["model.rs<br/>DocMeta · DocFull<br/>CreateDocRequest<br/>DocFormat"]
+        doc_repo["repo.rs<br/>DocRepository trait"]
+    end
+
+    subgraph plugin["plugin/ 插件系统"]
+        direction LR
+        p_auth["auth.rs<br/>AuthPlugin trait"]
+        p_registry["registry.rs<br/>PluginRegistry"]
+        p_storage["storage.rs<br/>StoragePlugin"]
+    end
+
+    subgraph perm["perm/ 权限引擎"]
+        perm_model["model.rs<br/>Identity · RoleDef<br/>RoleConfig"]
+    end
+
+    subgraph i18n["i18n/ 国际化"]
+        i18n_mgr["mod.rs<br/>I18nManager"]
+    end
+
+    lib --> doc
+    lib --> plugin
+    lib --> perm
+    lib --> i18n
 ```
 
 ## 插件注册表（PluginRegistry）
@@ -111,15 +121,22 @@ pub async fn list_cats(state: web::Data<AppState>) -> impl Responder {
 
 ## 前端：React 18 + TypeScript
 
-### 三个视图（View）
+### 视图注册表（ViewRegistry）
 
-前端通过 `location.pathname` 判断当前视图：
+前端不再硬编码 3 个视图，而是采用 **ViewRegistry** 模式，视图按 URL 模式动态注册和匹配：
+
+- **`src/views/registry.ts`** — `ViewRegistry` 类，提供 `register()` 注册视图、`resolve()` 按当前路径匹配视图
+- **`src/views/defaults.ts`** — 默认注册 3 个视图（listing、doc、admin）
+
+当前已注册的默认视图及路径映射：
 
 | 路径 | 视图组件 | 说明 |
 |------|---------|------|
 | `/` 或 `/listing` | `Listing` | 文档列表首页 |
 | `/listing/lib/{id}` | `DocPage` | 文档详情/阅读页 |
 | `/listing/lib/0` | `AdminPage` | 管理面板（序列码认证入口） |
+
+> 以上 3 个视图仅为默认注册项。通过 `viewRegistry.register({name, match, component})` 即可添加新视图，路径映射完全可扩展。
 
 ### 核心 Hooks
 
@@ -133,7 +150,7 @@ pub async fn list_cats(state: web::Data<AppState>) -> impl Responder {
 
 ### 前端入口
 
-```tsx
+```typescript
 // src/main.tsx
 ReactDOM.createRoot(document.getElementById("root")!).render(
     <I18nProvider>
