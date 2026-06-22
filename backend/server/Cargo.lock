@@ -564,7 +564,7 @@ dependencies = [
 
 [[package]]
 name = "ducia-auth-db"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -581,9 +581,8 @@ dependencies = [
 
 [[package]]
 name = "ducia-auth-simple"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
- "actix-web",
  "anyhow",
  "async-trait",
  "ducia-core",
@@ -625,7 +624,7 @@ dependencies = [
 
 [[package]]
 name = "ducia-storage-fs"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -636,7 +635,7 @@ dependencies = [
 
 [[package]]
 name = "ducia-storage-sqlite"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "anyhow",
  "async-trait",

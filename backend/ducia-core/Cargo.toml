@@ -4,6 +4,10 @@ version = "0.2.0"
 edition = "2024"
 description = "Core types, traits and plugin system for the Ducia listing framework"
 license = "MIT"
+repository = "https://github.com/FleetingLore/ducia-listing-framework"
+readme = "README.md"
+keywords = ["docs", "cms", "plugin", "markdown"]
+categories = ["web-programming"]
 
 [dependencies]
 serde = { version = "1", features = ["derive"] }
