@@ -89,13 +89,20 @@ pub struct RoleConfig {
 
 继承关系可视化：
 
-```mermaid
-graph TD
-    SA[superadmin<br/>permissions: *] --> A
-    A[admin<br/>+ doc:delete, user:manage, config:write] --> E
-    E[editor<br/>+ doc:write, doc:deprecate] --> V
-    V[viewer<br/>doc:read] --> AN
-    AN[anonymous<br/>doc:read]
+```text
+superadmin [permissions: *]
+    │  extends
+    ▼
+admin [+ doc:delete, user:manage, config:write]
+    │  extends
+    ▼
+editor [+ doc:write, doc:deprecate]
+    │  extends
+    ▼
+viewer [doc:read]
+    │  extends
+    ▼
+anonymous [doc:read]
 ```
 
 一个 `editor` 角色的用户最终拥有：`doc:write` + `doc:deprecate` + `doc:read`（继承自 viewer）。

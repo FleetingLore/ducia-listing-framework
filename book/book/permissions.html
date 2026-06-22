@@ -35,10 +35,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-4568314d.js";
+            window.path_to_searchindex_js = "searchindex-003bed1d.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-df4d3453.js"></script>
+        <script src="toc-9fa0b557.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -263,14 +263,20 @@
 }
 </code></pre>
 <p>继承关系可视化：</p>
-<pre class="mermaid">graph TD
-    SA[superadmin&lt;br/&gt;permissions: *] --&gt; A
-    A[admin&lt;br/&gt;+ doc:delete, user:manage, config:write] --&gt; E
-    E[editor&lt;br/&gt;+ doc:write, doc:deprecate] --&gt; V
-    V[viewer&lt;br/&gt;doc:read] --&gt; AN
-    AN[anonymous&lt;br/&gt;doc:read]
-</pre>
-
+<pre><code class="language-text">superadmin [permissions: *]
+    │  extends
+    ▼
+admin [+ doc:delete, user:manage, config:write]
+    │  extends
+    ▼
+editor [+ doc:write, doc:deprecate]
+    │  extends
+    ▼
+viewer [doc:read]
+    │  extends
+    ▼
+anonymous [doc:read]
+</code></pre>
 <p>一个 <code>editor</code> 角色的用户最终拥有：<code>doc:write</code> + <code>doc:deprecate</code> + <code>doc:read</code>（继承自 viewer）。</p>
 <h2 id="resolve_permissions-递归解析"><a class="header" href="#resolve_permissions-递归解析">resolve_permissions() 递归解析</a></h2>
 <p><code>RoleConfig::resolve_permissions()</code> 遍历用户的所有角色，递归收集权限：</p>
@@ -450,7 +456,6 @@
         <script src="book-a0b12cfe.js"></script>
 
         <!-- Custom JS scripts -->
-        <script src="mermaid-init-27cb93de.js"></script>
 
 
 

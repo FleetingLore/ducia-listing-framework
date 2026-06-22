@@ -10,30 +10,13 @@
 
 ## 插件架构图
 
-```mermaid
-graph TD
-    subgraph ducia-core
-        AT[AuthPlugin trait]
-        DR[DocRepository trait]
-        PR[PluginRegistry]
-    end
-
-    subgraph 认证插件
-        AS[auth-simple]
-        AD[auth-db]
-    end
-
-    subgraph 存储插件
-        FS[storage-fs]
-        SS[storage-sqlite]
-    end
-
-    AT -.-> AS
-    AT -.-> AD
-    DR -.-> FS
-    DR -.-> SS
-    PR --> AT
-    PR --> DR
+```text
+ducia-core (trait 定义)
+    ├── AuthPlugin trait ──── → auth-simple (序列码)
+    │                       └── auth-db (JWT + 数据库)
+    ├── DocRepository trait ── → storage-fs (文件系统)
+    │                        └── storage-sqlite (SQLite)
+    └── PluginRegistry (组装所有插件)
 ```
 
 ## AuthPlugin trait

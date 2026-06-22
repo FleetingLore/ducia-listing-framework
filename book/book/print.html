@@ -36,10 +36,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-4568314d.js";
+            window.path_to_searchindex_js = "searchindex-003bed1d.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-df4d3453.js"></script>
+        <script src="toc-9fa0b557.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -205,50 +205,29 @@
 </table>
 </div>
 <h2 id="项目结构"><a class="header" href="#项目结构">项目结构</a></h2>
-<pre class="mermaid">flowchart TB
-    ROOT["ducia-listing-framework/"]
-
-    ROOT --&gt; CONFIG
-    ROOT --&gt; BACKEND
-    ROOT --&gt; SRC
-    ROOT --&gt; BOOK
-
-    subgraph CONFIG["config/ 所有配置文件"]
-        direction TB
-        cf1["auth.json — JWT 密钥"]
-        cf2["roles.json — 动态角色定义"]
-        cf3["sequence.json — 序列码"]
-        cf4["settings.json — 功能开关"]
-        cf5["i18n/ — 语言资源文件"]
-    end
-
-    subgraph BACKEND["backend/"]
-        direction TB
-        be1["ducia-core/ — 框架核心（trait 定义）"]
-        be2["server/ — 二进制入口"]
-        be3["wasm/ — WASM 共享逻辑"]
-        subgraph PLUGINS["plugins/ 官方插件"]
-            direction LR
-            pl1["auth-simple — 序列码认证"]
-            pl2["auth-db — JWT + 数据库认证"]
-            pl3["storage-fs — 文件系统存储"]
-            pl4["storage-sqlite — SQLite 存储"]
-        end
-    end
-
-    subgraph SRC["src/ 前端源码"]
-        direction LR
-        sr1["types/ — TypeScript 类型"]
-        sr2["hooks/ — React Hooks"]
-        sr3["components/ — UI 组件"]
-        sr4["pages/ — 页面"]
-    end
-
-    subgraph BOOK["book/ 本书源码"]
-        bk1["本书源码"]
-    end
-</pre>
-
+<pre><code class="language-text">ducia-listing-framework/
+├── config/                 # 所有配置文件
+│   ├── auth.json           #   JWT 密钥
+│   ├── roles.json          #   动态角色定义
+│   ├── sequence.json       #   序列码
+│   ├── settings.json       #   功能开关
+│   └── i18n/               #   语言资源文件
+├── backend/
+│   ├── ducia-core/         # 框架核心（trait 定义）
+│   ├── plugins/            # 官方插件
+│   │   ├── auth-simple/    #   序列码认证
+│   │   ├── auth-db/        #   JWT + 数据库认证
+│   │   ├── storage-fs/     #   文件系统存储
+│   │   └── storage-sqlite/ #   SQLite 存储
+│   ├── server/             # 二进制入口
+│   └── wasm/               # WASM 共享逻辑
+├── src/                    # 前端源码
+│   ├── types/              #   TypeScript 类型
+│   ├── hooks/              #   React Hooks
+│   ├── components/         #   UI 组件
+│   └── pages/              #   页面
+└── book/                   # 本书源码
+</code></pre>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="快速开始"><a class="header" href="#快速开始">快速开始</a></h1>
 <h2 id="环境要求"><a class="header" href="#环境要求">环境要求</a></h2>
@@ -310,21 +289,17 @@ curl http://127.0.0.1:3001/api/auth/me \
 <h1 id="系统架构"><a class="header" href="#系统架构">系统架构</a></h1>
 <p>Ducia 采用<strong>前后端分离 + 插件化</strong>架构，后端负责 API、认证和存储，前端负责 UI 渲染和交互。</p>
 <h2 id="整体分层"><a class="header" href="#整体分层">整体分层</a></h2>
-<pre class="mermaid">flowchart TB
-    Browser["浏览器&lt;br/&gt;React 18+TS+Vite&lt;br/&gt;Listing/DocPage/&lt;br/&gt;AdminPage"]
-    Proxy["Vite Dev Proxy (:5173)&lt;br/&gt;→ Actix-web (:3001)"]
-    Registry["PluginRegistry"]
-    Auth["Auth Plugin&lt;br/&gt;认证"]
-    Storage["Storage Plugin&lt;br/&gt;存储"]
-    Extras["Extras&lt;br/&gt;扩展预留"]
-
-    Browser --&gt;|"/api/*"| Proxy
-    Proxy --&gt; Registry
-    Registry --&gt; Auth
-    Registry --&gt; Storage
-    Registry --&gt; Extras
-</pre>
-
+<pre><code class="language-text">浏览器 (React 18 + TS + Vite)
+    │  /api/*
+    ▼
+Vite Dev Proxy (:5173) → Actix-web (:3001)
+    │
+    ▼
+PluginRegistry
+    ├── Auth Plugin (认证)
+    ├── Storage Plugin (存储)
+    └── Extras (扩展预留)
+</code></pre>
 <p>请求路径：</p>
 <ul>
 <li>浏览器发起 API 请求</li>
@@ -356,36 +331,21 @@ curl http://127.0.0.1:3001/api/auth/me \
 <li><code>ducia-server</code> 依赖所有 5 个 crate，在启动时按配置组装</li>
 </ul>
 <h2 id="ducia-core-内部模块"><a class="header" href="#ducia-core-内部模块">ducia-core 内部模块</a></h2>
-<pre class="mermaid">flowchart TB
-    lib["lib.rs&lt;br/&gt;公共 API 重新导出"]
-
-    subgraph doc["doc/ 文档模型"]
-        direction LR
-        doc_model["model.rs&lt;br/&gt;DocMeta · DocFull&lt;br/&gt;CreateDocRequest&lt;br/&gt;DocFormat"]
-        doc_repo["repo.rs&lt;br/&gt;DocRepository trait"]
-    end
-
-    subgraph plugin["plugin/ 插件系统"]
-        direction LR
-        p_auth["auth.rs&lt;br/&gt;AuthPlugin trait"]
-        p_registry["registry.rs&lt;br/&gt;PluginRegistry"]
-        p_storage["storage.rs&lt;br/&gt;StoragePlugin"]
-    end
-
-    subgraph perm["perm/ 权限引擎"]
-        perm_model["model.rs&lt;br/&gt;Identity · RoleDef&lt;br/&gt;RoleConfig"]
-    end
-
-    subgraph i18n["i18n/ 国际化"]
-        i18n_mgr["mod.rs&lt;br/&gt;I18nManager"]
-    end
-
-    lib --&gt; doc
-    lib --&gt; plugin
-    lib --&gt; perm
-    lib --&gt; i18n
-</pre>
-
+<pre><code class="language-text">ducia-core/src/
+├── lib.rs          # 公共 API 重新导出
+├── doc/            # 文档模型
+│   ├── model.rs    #   DocMeta, DocFull, CreateDocRequest, DocFormat
+│   └── repo.rs     #   DocRepository trait
+├── plugin/         # 插件系统
+│   ├── auth.rs     #   AuthPlugin trait
+│   ├── registry.rs #   PluginRegistry (builder pattern)
+│   └── storage.rs  #   StoragePlugin = Box&lt;dyn DocRepository&gt;
+├── perm/           # 权限引擎
+│   └── model.rs    #   Identity, RoleDef, RoleConfig
+└── i18n/           # 国际化
+    └── mod.rs      #   I18nManager
+</code></pre>
+<p>lib.rs 负责重新导出所有公开类型，是 crate 的唯一入口。</p>
 <h2 id="插件注册表pluginregistry"><a class="header" href="#插件注册表pluginregistry">插件注册表（PluginRegistry）</a></h2>
 <p><code>PluginRegistry</code> 采用 <strong>builder 模式</strong>在启动时组装：</p>
 <pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
@@ -503,31 +463,13 @@ export default defineConfig({
 <li><strong>编译时组合</strong>：插件在 <code>main.rs</code> 编译时注册，非运行时动态加载</li>
 </ul>
 <h2 id="插件架构图"><a class="header" href="#插件架构图">插件架构图</a></h2>
-<pre class="mermaid">graph TD
-    subgraph ducia-core
-        AT[AuthPlugin trait]
-        DR[DocRepository trait]
-        PR[PluginRegistry]
-    end
-
-    subgraph 认证插件
-        AS[auth-simple]
-        AD[auth-db]
-    end
-
-    subgraph 存储插件
-        FS[storage-fs]
-        SS[storage-sqlite]
-    end
-
-    AT -.-&gt; AS
-    AT -.-&gt; AD
-    DR -.-&gt; FS
-    DR -.-&gt; SS
-    PR --&gt; AT
-    PR --&gt; DR
-</pre>
-
+<pre><code class="language-text">ducia-core (trait 定义)
+    ├── AuthPlugin trait ──── → auth-simple (序列码)
+    │                       └── auth-db (JWT + 数据库)
+    ├── DocRepository trait ── → storage-fs (文件系统)
+    │                        └── storage-sqlite (SQLite)
+    └── PluginRegistry (组装所有插件)
+</code></pre>
 <h2 id="authplugin-trait"><a class="header" href="#authplugin-trait">AuthPlugin trait</a></h2>
 <p>定义在 <code>ducia-core/src/plugin/auth.rs</code>，是认证机制的抽象接口：</p>
 <pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
@@ -1337,14 +1279,20 @@ curl -s -X POST http://127.0.0.1:3001/api/docs \
 }
 </code></pre>
 <p>继承关系可视化：</p>
-<pre class="mermaid">graph TD
-    SA[superadmin&lt;br/&gt;permissions: *] --&gt; A
-    A[admin&lt;br/&gt;+ doc:delete, user:manage, config:write] --&gt; E
-    E[editor&lt;br/&gt;+ doc:write, doc:deprecate] --&gt; V
-    V[viewer&lt;br/&gt;doc:read] --&gt; AN
-    AN[anonymous&lt;br/&gt;doc:read]
-</pre>
-
+<pre><code class="language-text">superadmin [permissions: *]
+    │  extends
+    ▼
+admin [+ doc:delete, user:manage, config:write]
+    │  extends
+    ▼
+editor [+ doc:write, doc:deprecate]
+    │  extends
+    ▼
+viewer [doc:read]
+    │  extends
+    ▼
+anonymous [doc:read]
+</code></pre>
 <p>一个 <code>editor</code> 角色的用户最终拥有：<code>doc:write</code> + <code>doc:deprecate</code> + <code>doc:read</code>（继承自 viewer）。</p>
 <h2 id="resolve_permissions-递归解析"><a class="header" href="#resolve_permissions-递归解析">resolve_permissions() 递归解析</a></h2>
 <p><code>RoleConfig::resolve_permissions()</code> 遍历用户的所有角色，递归收集权限：</p>
@@ -1476,23 +1424,15 @@ curl -s -X POST http://127.0.0.1:3001/api/docs \
 <h1 id="国际化i18n"><a class="header" href="#国际化i18n">国际化（i18n）</a></h1>
 <p>Ducia 的国际化设计遵循<strong>零硬编码</strong>原则：所有用户可见文本从 JSON 语言包加载，前后端统一使用键查找翻译。</p>
 <h2 id="设计概览"><a class="header" href="#设计概览">设计概览</a></h2>
-<pre class="mermaid">sequenceDiagram
-    participant Browser
-    participant Frontend
-    participant Backend
-    participant Config as config/i18n/
-
-    Browser-&gt;&gt;Frontend: 加载页面 (Accept-Language: en)
-    Frontend-&gt;&gt;Backend: GET /api/locales
-    Backend-&gt;&gt;Config: 扫描 config/i18n/*.json
-    Backend--&gt;&gt;Frontend: [{code: "en", name: "English"}, ...]
-    Frontend-&gt;&gt;Frontend: resolveInitialLocale() → "en"
-    Frontend-&gt;&gt;Backend: GET /api/locales/en
-    Backend-&gt;&gt;Config: 读取 en.json
-    Backend--&gt;&gt;Frontend: {"site.title": "...", ...}
-    Frontend-&gt;&gt;Frontend: t("site.title") → "25 ECE 3 Todo List"
-</pre>
-
+<pre><code class="language-text">1. 前端 GET /api/locales → 后端扫描 config/i18n/*.json
+2. 后端返回可用语言列表 [{code, name}, ...]
+3. 前端 resolveInitialLocale() 解析首选语言
+   - sessionStorage 中的用户选择
+   - 浏览器 Accept-Language 请求头
+   - fallback 到默认语言
+4. 前端 GET /api/locales/{locale} → 后端返回对应语言包
+5. 组件通过 t('key') 查表翻译
+</code></pre>
 <p>核心流程：</p>
 <ol>
 <li>前端从后端获取可用语言列表</li>
@@ -1820,12 +1760,15 @@ cp config/i18n/en.json config/i18n/ja.json
 </div>
 <h3 id="继承链解析"><a class="header" href="#继承链解析">继承链解析</a></h3>
 <p>框架在构建用户身份时，递归展开继承链并合并所有权限。以 <code>superadmin</code> 为例：</p>
-<pre class="mermaid">flowchart LR
-    superadmin["superadmin&lt;br/&gt;权限: *"] --&gt;|"extends"| admin["admin&lt;br/&gt;权限: doc:delete, user:manage, config:write"]
-    admin --&gt;|"extends"| editor["editor&lt;br/&gt;权限: doc:write, doc:deprecate"]
-    editor --&gt;|"extends"| viewer["viewer&lt;br/&gt;权限: doc:read"]
-</pre>
-
+<pre><code class="language-text">superadmin
+  ├── extends: admin
+  │     ├── permissions: [doc:delete, user:manage, config:write]
+  │     └── extends: editor
+  │           ├── permissions: [doc:write, doc:deprecate]
+  │           └── extends: viewer
+  │                 └── permissions: [doc:read]
+  └── permissions: [*]
+</code></pre>
 <p>最终 <code>superadmin</code> 拥有 <code>*</code>（通配全部权限），<code>admin</code> 拥有 <code>doc:read, doc:write, doc:deprecate, doc:delete, user:manage, config:write</code>。</p>
 <hr>
 <h2 id="sequencejson--管理员登录序列"><a class="header" href="#sequencejson--管理员登录序列"><code>sequence.json</code> — 管理员登录序列</a></h2>
@@ -2530,18 +2473,17 @@ cp config/i18n/en.json config/i18n/ja.json
 <h1 id="存储后端"><a class="header" href="#存储后端">存储后端</a></h1>
 <p>Ducia 的存储层通过 <code>DocRepository</code> trait 抽象，支持即插即用的后端切换。框架内置两种实现，也可自行开发自定义存储后端。</p>
 <h2 id="架构概览"><a class="header" href="#架构概览">架构概览</a></h2>
-<pre class="mermaid">flowchart TD
-    A[HTTP Handler] --&gt; B[PluginRegistry]
-    B --&gt; C[StoragePlugin]
-    C --&gt; D[DocRepository trait]
-    D --&gt; E[storage-fs]
-    D --&gt; F[storage-sqlite]
-    D --&gt; G[自定义后端]
-
-    E --&gt; H[(config/docs.json + docs/*.md)]
-    F --&gt; I[(data/ducia.db)]
-</pre>
-
+<pre><code class="language-text">HTTP Handler
+    │
+    ▼
+PluginRegistry
+    │
+    ▼
+StoragePlugin (DocRepository trait)
+    ├── storage-fs ──→ config/docs.json + docs/*.md
+    ├── storage-sqlite ──→ data/ducia.db
+    └── 自定义后端
+</code></pre>
 <p>所有 HTTP handler 通过 <code>PluginRegistry</code> 获取存储插件，调用 <code>DocRepository</code> trait 定义的方法。框架不感知底层是文件系统还是数据库。</p>
 <hr>
 <h2 id="docrepository-trait-1"><a class="header" href="#docrepository-trait-1"><code>DocRepository</code> trait</a></h2>
@@ -2830,24 +2772,14 @@ let storage_plugin = Box::new(MyStorage::new(...)) as Box&lt;dyn DocRepository&g
 <h1 id="认证后端"><a class="header" href="#认证后端">认证后端</a></h1>
 <p>Ducia 的认证层通过 <code>AuthPlugin</code> trait 抽象，支持即插即用的认证方案。框架默认提供两种实现，也可对接外部认证系统。</p>
 <h2 id="架构概览-1"><a class="header" href="#架构概览-1">架构概览</a></h2>
-<pre class="mermaid">flowchart TD
-    A[HTTP Request] --&gt; B{config/auth.json?}
-    B --&gt;|存在| C[auth-db]
-    B --&gt;|不存在| D[auth-simple]
-
-    C --&gt; E[JWT + bcrypt]
-    C --&gt; F[(data/auth.db)]
-
-    D --&gt; G[UUID token]
-    D --&gt; H[内存 HashMap]
-
-    C --&gt; I[AuthPlugin trait]
-    D --&gt; I
-
-    I --&gt; J[PluginRegistry]
-    J --&gt; K[HTTP Handler]
-</pre>
-
+<pre><code class="language-text">HTTP Request
+    │
+    ├── config/auth.json 存在? ──→ auth-db ──→ JWT + bcrypt ──→ data/auth.db
+    │
+    └── config/auth.json 不存在 ──→ auth-simple ──→ UUID token ──→ 内存 HashMap
+    
+    两者都实现 AuthPlugin trait → 注入 PluginRegistry → Handler 调用
+</code></pre>
 <p>认证插件通过 <code>PluginRegistry</code> 注入，handler 在需要认证的接口中通过内置 session endpoint 或自定义逻辑调用 <code>AuthPlugin</code> 方法。</p>
 <hr>
 <h2 id="authplugin-trait-1"><a class="header" href="#authplugin-trait-1"><code>AuthPlugin</code> trait</a></h2>
@@ -2954,27 +2886,18 @@ pub trait AuthPlugin: Send + Sync {
 <h2 id="auth-db--jwt--数据库认证"><a class="header" href="#auth-db--jwt--数据库认证">auth-db — JWT + 数据库认证</a></h2>
 <p><strong>生产环境推荐方案</strong>（创建 <code>config/auth.json</code> 即可启用）。</p>
 <h3 id="工作原理-1-1"><a class="header" href="#工作原理-1-1">工作原理</a></h3>
-<pre class="mermaid">sequenceDiagram
-    participant C as 客户端
-    participant S as 服务端
-    participant DB as SQLite
+<pre><code class="language-text">注册流程：
+  客户端 → POST /api/auth/register {username, password}
+  服务端 → 校验 → bcrypt 哈希 → INSERT INTO users → 返回 {id, username, roles:["viewer"]}
 
-    Note over C,DB: 注册流程
-    C-&gt;&gt;S: POST /api/auth/register {username, password}
-    S-&gt;&gt;DB: bcrypt 哈希密码后存入
-    S--&gt;&gt;C: {id, username, roles: ["viewer"]}
+登录流程：
+  客户端 → POST /api/auth/login {username, password}
+  服务端 → SELECT user → bcrypt::verify → 签发 JWT → 返回 {token, user}
 
-    Note over C,DB: 登录流程
-    C-&gt;&gt;S: POST /api/auth/login {username, password}
-    S-&gt;&gt;DB: 查询用户 &amp; bcrypt 验证
-    S--&gt;&gt;C: {token: "eyJ...", user: {...}}
-
-    Note over C,DB: 认证请求
-    C-&gt;&gt;S: Authorization: Bearer eyJ...
-    S-&gt;&gt;S: JWT 解码 &amp; 过期校验
-    S--&gt;&gt;C: 业务数据
-</pre>
-
+认证请求：
+  客户端 → Authorization: Bearer &lt;token&gt;
+  服务端 → JWT 解码 → 过期校验 → 业务数据
+</code></pre>
 <h3 id="数据结构-1"><a class="header" href="#数据结构-1">数据结构</a></h3>
 <pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
@@ -3221,63 +3144,33 @@ curl http://127.0.0.1:3001/api/cats \
 </table>
 </div>
 <h2 id="项目结构-1"><a class="header" href="#项目结构-1">项目结构</a></h2>
-<pre class="mermaid">flowchart TB
-    subgraph src["src/ 前端源码"]
-        main["main.tsx&lt;br/&gt;入口：挂载App，包裹I18nProvider"]
-        app["App.tsx&lt;br/&gt;单页路由分发"]
-
-        subgraph comp["components/ 可复用UI组件"]
-            Header["Header.tsx&lt;br/&gt;列表页顶栏"]
-            DocHeader["DocHeader.tsx&lt;br/&gt;文档页顶栏"]
-            DocItem["DocItem.tsx&lt;br/&gt;文档列表项（支持预加载）"]
-            DocFooter["DocFooter.tsx&lt;br/&gt;文档操作栏（弃用/删除）"]
-            DeprecatedBanner["DeprecatedBanner.tsx&lt;br/&gt;弃用横幅"]
-        end
-
-        subgraph pgs["pages/ 页面级组件"]
-            Listing["Listing.tsx&lt;br/&gt;文档列表页"]
-            DocPage["DocPage.tsx&lt;br/&gt;文档阅读页"]
-            AdminPage["AdminPage.tsx&lt;br/&gt;管理认证页"]
-        end
-
-        subgraph hks["hooks/ React Hooks"]
-            useAdmin["useAdmin.ts&lt;br/&gt;管理员认证状态"]
-            useCats["useCats.ts&lt;br/&gt;文档列表数据"]
-            useDoc["useDoc.ts&lt;br/&gt;单文档操作"]
-            useI18n["useI18n.tsx&lt;br/&gt;国际化（含I18nProvider）"]
-            useStickyHeader["useStickyHeader.ts&lt;br/&gt;吸顶顶栏"]
-            useUpload["useUpload.ts&lt;br/&gt;文件上传"]
-        end
-
-        subgraph typs["types/"]
-            types_def["TypeScript 类型定义"]
-        end
-
-        subgraph utls["utils/ 工具函数"]
-            prefetch["prefetch.ts&lt;br/&gt;预加载缓存"]
-            download["download.ts&lt;br/&gt;文档下载"]
-        end
-
-        subgraph stys["styles/ 全局样式"]
-            tokens["tokens.css&lt;br/&gt;设计令牌"]
-            global_css["global.css&lt;br/&gt;全局重置与布局"]
-            md_css["markdown.css&lt;br/&gt;Markdown渲染样式"]
-        end
-
-        subgraph wsm["wasm/"]
-            wasm_mod["WASM模块（构建产物副本）"]
-        end
-    end
-
-    main --&gt; app
-    app --&gt; comp
-    app --&gt; pgs
-    pgs --&gt; hks
-    pgs --&gt; utls
-    pgs --&gt; typs
-    main --&gt; stys
-</pre>
-
+<pre><code class="language-text">src/
+├── main.tsx                  # 入口
+├── App.tsx                   # 路由分发
+├── components/               # UI 组件
+│   ├── Header.tsx
+│   ├── DocHeader.tsx
+│   ├── DocItem.tsx
+│   ├── DocFooter.tsx
+│   └── DeprecatedBanner.tsx
+├── pages/                    # 页面
+│   ├── Listing.tsx
+│   ├── DocPage.tsx
+│   └── AdminPage.tsx
+├── hooks/                    # Hooks
+│   ├── useAdmin.ts
+│   ├── useCats.ts
+│   ├── useDoc.ts
+│   ├── useI18n.tsx
+│   ├── useStickyHeader.ts
+│   └── useUpload.ts
+├── types/                    # TypeScript 类型
+├── utils/                    # 工具函数
+├── styles/                   # 全局样式
+├── views/                    # 视图注册表
+├── rendering/                # 格式注册表
+└── wasm/                     # WASM 模块
+</code></pre>
 <h2 id="路由设计"><a class="header" href="#路由设计">路由设计</a></h2>
 <p>Ducia 是一个<strong>单页应用 (SPA)</strong>，不使用 React Router，而是直接读取 <code>location.pathname</code> 进行路由分发：</p>
 <div class="table-wrapper">
@@ -3686,6 +3579,30 @@ nvm use
 <pre><code class="language-bash">./scripts/stop-dev.sh
 </code></pre>
 <hr>
+<h2 id="docker-部署"><a class="header" href="#docker-部署">Docker 部署</a></h2>
+<p>如果不想安装 Rust / Node.js，直接用 Docker：</p>
+<pre><code class="language-bash"># 构建并启动（首次构建约 5-10 分钟）
+docker compose up -d
+
+# 浏览器打开 http://localhost:3001
+</code></pre>
+<p><code>Dockerfile</code> 分三个阶段：</p>
+<ol>
+<li><strong>frontend</strong>：<code>node:20-alpine</code> 构建 <code>npm run build</code> → <code>dist/</code></li>
+<li><strong>backend</strong>：<code>rust:1.80-alpine</code> 编译 <code>cargo build --release</code> → 二进制</li>
+<li><strong>runtime</strong>：<code>alpine:3.20</code> 仅复制产物，镜像体积最小</li>
+</ol>
+<p><code>docker-compose.yml</code> 将 <code>config/</code>、<code>docs/</code>、<code>data/</code> 挂载到宿主机：</p>
+<ul>
+<li>修改配置文件后 <code>docker compose restart</code> 生效</li>
+<li>上传的文档保留在 <code>docs/</code>，容器重建不丢失</li>
+<li>SQLite 数据文件在 <code>data/</code></li>
+</ul>
+<p>生产环境下后端同时 serve 前端静态文件（通过 <code>actix-files</code>），不再需要 Vite dev server。</p>
+<p>停止：</p>
+<pre><code class="language-bash">docker compose down
+</code></pre>
+<hr>
 <h2 id="分步启动"><a class="header" href="#分步启动">分步启动</a></h2>
 <p>如果需要单独启动后端或前端：</p>
 <h3 id="启动后端"><a class="header" href="#启动后端">启动后端</a></h3>
@@ -3753,62 +3670,19 @@ cargo test -p ducia-auth-db
 </code></pre>
 <hr>
 <h2 id="项目布局"><a class="header" href="#项目布局">项目布局</a></h2>
-<pre class="mermaid">flowchart TB
-    subgraph root["ducia-listing-framework/"]
-        subgraph cfg["config/ 运行时配置"]
-            auth["auth.json&lt;br/&gt;JWT密钥与用户存储配置"]
-            roles["roles.json&lt;br/&gt;动态角色→权限映射"]
-            seq["sequence.json&lt;br/&gt;序列码认证配置"]
-            settings["settings.json&lt;br/&gt;功能开关"]
-            i18n["i18n/&lt;br/&gt;语言资源文件"]
-        end
-
-        subgraph be["backend/ 后端"]
-            subgraph core["ducia-core/ 框架核心"]
-                traits["trait定义&lt;br/&gt;DocStorage, AuthProvider…"]
-            end
-
-            subgraph plugins["plugins/ 插件"]
-                auth_simple["auth-simple/&lt;br/&gt;序列码认证插件"]
-                auth_db["auth-db/&lt;br/&gt;JWT+数据库认证插件"]
-                storage_fs["storage-fs/&lt;br/&gt;文件系统存储插件"]
-                storage_sqlite["storage-sqlite/&lt;br/&gt;SQLite存储插件"]
-            end
-
-            srv["server/&lt;br/&gt;Actix-web入口&lt;br/&gt;路由、中间件、启动"]
-            wasm_be["wasm/&lt;br/&gt;WASM共享逻辑&lt;br/&gt;Markdown渲染、序列验证"]
-        end
-
-        subgraph fe["src/ 前端源码"]
-            main_tsx["main.tsx 入口"]
-            app_tsx["App.tsx 路由分发"]
-            comp_fe["components/ UI组件"]
-            pgs_fe["pages/ 页面"]
-            hks_fe["hooks/ React Hooks"]
-            typs_fe["types/ TypeScript类型"]
-            utls_fe["utils/ 工具函数"]
-            stys_fe["styles/ 全局样式"]
-            wasm_fe["wasm/ WASM模块副本"]
-        end
-
-        subgraph tools["工具与文档"]
-            scripts["scripts/&lt;br/&gt;开发与部署脚本&lt;br/&gt;run-dev.sh, stop-dev.sh…"]
-            book_dir["book/&lt;br/&gt;mdBook文档源码"]
-        end
-
-        public["public/ 静态资源"]
-        data["data/ 运行时数据（SQLite）"]
-        docs["docs/ 文档内容（Markdown）"]
-        dist["dist/ 前端生产构建产物"]
-        be_src["backend/src/ 后端共享工具代码"]
-
-        vite["vite.config.js"]
-        tsconfig["tsconfig.json"]
-        package["package.json"]
-        cargo["Cargo.toml"]
-    end
-</pre>
-
+<pre><code class="language-text">ducia-listing-framework/
+├── config/          # 运行时配置
+├── backend/         # 后端
+│   ├── ducia-core/  # 框架核心
+│   ├── plugins/     # 插件
+│   ├── server/      # 入口
+│   └── wasm/        # WASM
+├── src/             # 前端源码
+├── public/          # 静态资源
+├── scripts/         # 脚本
+├── book/            # 本书
+└── data/            # 运行时数据
+</code></pre>
 <h3 id="关键路径说明"><a class="header" href="#关键路径说明">关键路径说明</a></h3>
 <div class="table-wrapper">
 <table>
@@ -4089,6 +3963,144 @@ npm run dev
 <li><strong>Node.js 兼容</strong>：当前仅构建 <code>--target web</code>。如果需要在 Node.js 端测试 WASM 函数，可使用 <code>--target nodejs</code></li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div>
+<h1 id="服务器部署"><a class="header" href="#服务器部署">服务器部署</a></h1>
+<p>本章以<strong>腾讯云轻量应用服务器</strong>为例，介绍如何将 Ducia 部署到公网。</p>
+<h2 id="前置准备"><a class="header" href="#前置准备">前置准备</a></h2>
+<ul>
+<li>一台云服务器（本文使用腾讯云轻量应用服务器，2C2G，Ubuntu 22.04）</li>
+<li>一个域名（可选，用于配置 HTTPS）</li>
+<li>项目代码已推送到 GitHub</li>
+</ul>
+<h2 id="第一步登录服务器"><a class="header" href="#第一步登录服务器">第一步：登录服务器</a></h2>
+<pre><code class="language-bash">ssh root@&lt;你的服务器IP&gt;
+</code></pre>
+<p>腾讯云控制台 → 轻量应用服务器 → 远程连接，或使用本地终端 SSH。</p>
+<h2 id="第二步安装-docker"><a class="header" href="#第二步安装-docker">第二步：安装 Docker</a></h2>
+<pre><code class="language-bash"># 安装 Docker
+curl -fsSL https://get.docker.com | sh
+
+# 启动 Docker 服务
+systemctl enable docker
+systemctl start docker
+
+# 验证
+docker --version
+</code></pre>
+<blockquote>
+<p>腾讯云轻量服务器已预装 Docker，可跳过此步。</p>
+</blockquote>
+<h2 id="第三步克隆项目"><a class="header" href="#第三步克隆项目">第三步：克隆项目</a></h2>
+<pre><code class="language-bash">git clone https://github.com/FleetingLore/ducia-listing-framework.git
+cd ducia-listing-framework
+git checkout indev
+</code></pre>
+<h2 id="第四步配置"><a class="header" href="#第四步配置">第四步：配置</a></h2>
+<p>编辑 <code>config/site.json</code> 设置站点名称：</p>
+<pre><code class="language-json">{ "name": "我的文档站" }
+</code></pre>
+<p>编辑 <code>config/auth.json</code> 修改 JWT 密钥（务必更换默认值）：</p>
+<pre><code class="language-json">{ "jwt_secret": "生成一个随机字符串" }
+</code></pre>
+<pre><code class="language-bash"># 生成随机密钥
+openssl rand -hex 32
+</code></pre>
+<p>编辑 <code>config/sequence.json</code> 修改管理员登录序列（可选）：</p>
+<pre><code class="language-json">{ "sequence": [3, 1, 4, 2, 4] }
+</code></pre>
+<h2 id="第五步启动服务"><a class="header" href="#第五步启动服务">第五步：启动服务</a></h2>
+<pre><code class="language-bash">docker compose up -d
+</code></pre>
+<p>首次构建需要 5-10 分钟（编译 Rust + 构建前端）。之后重启秒级完成。</p>
+<p>查看运行状态：</p>
+<pre><code class="language-bash">docker compose ps
+docker compose logs -f
+</code></pre>
+<h2 id="第六步配置防火墙"><a class="header" href="#第六步配置防火墙">第六步：配置防火墙</a></h2>
+<p>默认服务监听 <code>0.0.0.0:3001</code>，需要在云服务器防火墙放行端口。</p>
+<p><strong>腾讯云控制台操作</strong>：</p>
+<ol>
+<li>进入轻量应用服务器 → 防火墙</li>
+<li>添加规则：协议 <code>TCP</code>，端口 <code>3001</code>，策略 <code>允许</code></li>
+<li>保存</li>
+</ol>
+<p>验证：</p>
+<pre><code class="language-bash">curl http://&lt;服务器IP&gt;:3001/api/locales
+# 应返回语言列表 JSON
+</code></pre>
+<p>浏览器访问 <code>http://&lt;服务器IP&gt;:3001</code> 即可看到文档站。</p>
+<h2 id="第七步配置-nginx-反向代理可选"><a class="header" href="#第七步配置-nginx-反向代理可选">第七步：配置 Nginx 反向代理（可选）</a></h2>
+<p>使用域名访问并开启 HTTPS：</p>
+<h3 id="安装-nginx"><a class="header" href="#安装-nginx">安装 Nginx</a></h3>
+<pre><code class="language-bash">apt update &amp;&amp; apt install -y nginx certbot python3-certbot-nginx
+</code></pre>
+<h3 id="配置站点"><a class="header" href="#配置站点">配置站点</a></h3>
+<p>创建 <code>/etc/nginx/sites-available/ducia</code>：</p>
+<pre><code class="language-nginx">server {
+    listen 80;
+    server_name docs.example.com;   # 替换为你的域名
+
+    location / {
+        proxy_pass http://127.0.0.1:3001;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+</code></pre>
+<p>启用站点：</p>
+<pre><code class="language-bash">ln -s /etc/nginx/sites-available/ducia /etc/nginx/sites-enabled/
+rm /etc/nginx/sites-enabled/default
+nginx -t &amp;&amp; systemctl reload nginx
+</code></pre>
+<h3 id="配置-https"><a class="header" href="#配置-https">配置 HTTPS</a></h3>
+<pre><code class="language-bash">certbot --nginx -d docs.example.com
+</code></pre>
+<p>按提示操作，Certbot 自动申请 Let’s Encrypt 证书并更新 Nginx 配置。</p>
+<h3 id="自动续期"><a class="header" href="#自动续期">自动续期</a></h3>
+<pre><code class="language-bash"># certbot 已自动添加定时任务，验证：
+systemctl status certbot.timer
+</code></pre>
+<h2 id="第八步开机自启"><a class="header" href="#第八步开机自启">第八步：开机自启</a></h2>
+<p>Docker Compose 服务已配置 <code>restart: unless-stopped</code>，服务器重启后自动恢复。</p>
+<p>如需手动管理：</p>
+<pre><code class="language-bash">docker compose up -d      # 启动
+docker compose down       # 停止
+docker compose restart    # 重启（修改配置后）
+docker compose pull       # 更新镜像
+docker compose up -d --build  # 重新构建
+</code></pre>
+<h2 id="更新部署"><a class="header" href="#更新部署">更新部署</a></h2>
+<p>代码更新后重新部署：</p>
+<pre><code class="language-bash">cd ducia-listing-framework
+git pull
+docker compose up -d --build
+</code></pre>
+<h2 id="常用运维命令"><a class="header" href="#常用运维命令">常用运维命令</a></h2>
+<pre><code class="language-bash"># 查看日志
+docker compose logs -f ducia
+
+# 进入容器
+docker compose exec ducia sh
+
+# 备份数据
+tar -czf backup-$(date +%Y%m%d).tar.gz config/ docs/ data/
+
+# 恢复数据
+tar -xzf backup-20240623.tar.gz
+</code></pre>
+<h2 id="完整架构"><a class="header" href="#完整架构">完整架构</a></h2>
+<pre><code class="language-text">Internet
+  │
+  ▼
+Nginx (:80/:443) ─── 反向代理 ──→ ducia-server (:3001)
+  │                                  │
+  ├── HTTPS (Let's Encrypt)          ├── serve dist/ (前端静态文件)
+  └── 域名 docs.example.com          ├── config/ (配置文件)
+                                     ├── docs/ (文档内容)
+                                     └── data/ (SQLite 数据)
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div>
 <h1 id="变更日志"><a class="header" href="#变更日志">变更日志</a></h1>
 <p>本文档记录 Ducia Listing Framework 的所有重要版本变更。</p>
 <hr>
@@ -4223,7 +4235,6 @@ npm run dev
         <script src="book-a0b12cfe.js"></script>
 
         <!-- Custom JS scripts -->
-        <script src="mermaid-init-27cb93de.js"></script>
 
         <script>
         window.addEventListener('load', function() {

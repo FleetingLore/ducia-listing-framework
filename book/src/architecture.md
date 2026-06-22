@@ -4,20 +4,17 @@ Ducia 采用**前后端分离 + 插件化**架构，后端负责 API、认证和
 
 ## 整体分层
 
-```mermaid
-flowchart TB
-    Browser["浏览器<br/>React 18+TS+Vite<br/>Listing/DocPage/<br/>AdminPage"]
-    Proxy["Vite Dev Proxy (:5173)<br/>→ Actix-web (:3001)"]
-    Registry["PluginRegistry"]
-    Auth["Auth Plugin<br/>认证"]
-    Storage["Storage Plugin<br/>存储"]
-    Extras["Extras<br/>扩展预留"]
-
-    Browser -->|"/api/*"| Proxy
-    Proxy --> Registry
-    Registry --> Auth
-    Registry --> Storage
-    Registry --> Extras
+```text
+浏览器 (React 18 + TS + Vite)
+    │  /api/*
+    ▼
+Vite Dev Proxy (:5173) → Actix-web (:3001)
+    │
+    ▼
+PluginRegistry
+    ├── Auth Plugin (认证)
+    ├── Storage Plugin (存储)
+    └── Extras (扩展预留)
 ```
 
 请求路径：
@@ -46,36 +43,23 @@ flowchart TB
 
 ## ducia-core 内部模块
 
-```mermaid
-flowchart TB
-    lib["lib.rs<br/>公共 API 重新导出"]
-
-    subgraph doc["doc/ 文档模型"]
-        direction LR
-        doc_model["model.rs<br/>DocMeta · DocFull<br/>CreateDocRequest<br/>DocFormat"]
-        doc_repo["repo.rs<br/>DocRepository trait"]
-    end
-
-    subgraph plugin["plugin/ 插件系统"]
-        direction LR
-        p_auth["auth.rs<br/>AuthPlugin trait"]
-        p_registry["registry.rs<br/>PluginRegistry"]
-        p_storage["storage.rs<br/>StoragePlugin"]
-    end
-
-    subgraph perm["perm/ 权限引擎"]
-        perm_model["model.rs<br/>Identity · RoleDef<br/>RoleConfig"]
-    end
-
-    subgraph i18n["i18n/ 国际化"]
-        i18n_mgr["mod.rs<br/>I18nManager"]
-    end
-
-    lib --> doc
-    lib --> plugin
-    lib --> perm
-    lib --> i18n
+```text
+ducia-core/src/
+├── lib.rs          # 公共 API 重新导出
+├── doc/            # 文档模型
+│   ├── model.rs    #   DocMeta, DocFull, CreateDocRequest, DocFormat
+│   └── repo.rs     #   DocRepository trait
+├── plugin/         # 插件系统
+│   ├── auth.rs     #   AuthPlugin trait
+│   ├── registry.rs #   PluginRegistry (builder pattern)
+│   └── storage.rs  #   StoragePlugin = Box<dyn DocRepository>
+├── perm/           # 权限引擎
+│   └── model.rs    #   Identity, RoleDef, RoleConfig
+└── i18n/           # 国际化
+    └── mod.rs      #   I18nManager
 ```
+
+lib.rs 负责重新导出所有公开类型，是 crate 的唯一入口。
 
 ## 插件注册表（PluginRegistry）
 

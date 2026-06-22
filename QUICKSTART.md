@@ -1,5 +1,24 @@
 # 快速启动
 
+## 方式一：Docker（推荐，零依赖）
+
+```bash
+# 构建并启动
+docker compose up -d
+
+# 浏览器打开 http://localhost:3001
+
+# 停止
+docker compose down
+```
+
+配置文件、文档、数据通过 volume 挂载到宿主机：
+- `config/` → 修改配置后 `docker compose restart` 生效
+- `docs/` → 上传的文档保存在这里
+- `data/` → SQLite 数据库文件
+
+## 方式二：本地开发
+
 ```bash
 # 1. 安装依赖（首次）
 npm install

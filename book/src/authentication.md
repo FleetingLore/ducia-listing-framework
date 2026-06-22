@@ -4,23 +4,14 @@ Ducia 的认证层通过 `AuthPlugin` trait 抽象，支持即插即用的认证
 
 ## 架构概览
 
-```mermaid
-flowchart TD
-    A[HTTP Request] --> B{config/auth.json?}
-    B -->|存在| C[auth-db]
-    B -->|不存在| D[auth-simple]
-
-    C --> E[JWT + bcrypt]
-    C --> F[(data/auth.db)]
-
-    D --> G[UUID token]
-    D --> H[内存 HashMap]
-
-    C --> I[AuthPlugin trait]
-    D --> I
-
-    I --> J[PluginRegistry]
-    J --> K[HTTP Handler]
+```text
+HTTP Request
+    │
+    ├── config/auth.json 存在? ──→ auth-db ──→ JWT + bcrypt ──→ data/auth.db
+    │
+    └── config/auth.json 不存在 ──→ auth-simple ──→ UUID token ──→ 内存 HashMap
+    
+    两者都实现 AuthPlugin trait → 注入 PluginRegistry → Handler 调用
 ```
 
 认证插件通过 `PluginRegistry` 注入，handler 在需要认证的接口中通过内置 session endpoint 或自定义逻辑调用 `AuthPlugin` 方法。
@@ -152,26 +143,18 @@ X-Session-Token: a1b2c3d4-e5f6-7890-abcd-ef1234567890
 
 ### 工作原理
 
-```mermaid
-sequenceDiagram
-    participant C as 客户端
-    participant S as 服务端
-    participant DB as SQLite
+```text
+注册流程：
+  客户端 → POST /api/auth/register {username, password}
+  服务端 → 校验 → bcrypt 哈希 → INSERT INTO users → 返回 {id, username, roles:["viewer"]}
 
-    Note over C,DB: 注册流程
-    C->>S: POST /api/auth/register {username, password}
-    S->>DB: bcrypt 哈希密码后存入
-    S-->>C: {id, username, roles: ["viewer"]}
+登录流程：
+  客户端 → POST /api/auth/login {username, password}
+  服务端 → SELECT user → bcrypt::verify → 签发 JWT → 返回 {token, user}
 
-    Note over C,DB: 登录流程
-    C->>S: POST /api/auth/login {username, password}
-    S->>DB: 查询用户 & bcrypt 验证
-    S-->>C: {token: "eyJ...", user: {...}}
-
-    Note over C,DB: 认证请求
-    C->>S: Authorization: Bearer eyJ...
-    S->>S: JWT 解码 & 过期校验
-    S-->>C: 业务数据
+认证请求：
+  客户端 → Authorization: Bearer <token>
+  服务端 → JWT 解码 → 过期校验 → 业务数据
 ```
 
 ### 数据结构

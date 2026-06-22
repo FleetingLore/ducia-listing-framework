@@ -35,10 +35,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-4568314d.js";
+            window.path_to_searchindex_js = "searchindex-003bed1d.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-df4d3453.js"></script>
+        <script src="toc-9fa0b557.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -183,21 +183,17 @@
                         <h1 id="系统架构"><a class="header" href="#系统架构">系统架构</a></h1>
 <p>Ducia 采用<strong>前后端分离 + 插件化</strong>架构，后端负责 API、认证和存储，前端负责 UI 渲染和交互。</p>
 <h2 id="整体分层"><a class="header" href="#整体分层">整体分层</a></h2>
-<pre class="mermaid">flowchart TB
-    Browser["浏览器&lt;br/&gt;React 18+TS+Vite&lt;br/&gt;Listing/DocPage/&lt;br/&gt;AdminPage"]
-    Proxy["Vite Dev Proxy (:5173)&lt;br/&gt;→ Actix-web (:3001)"]
-    Registry["PluginRegistry"]
-    Auth["Auth Plugin&lt;br/&gt;认证"]
-    Storage["Storage Plugin&lt;br/&gt;存储"]
-    Extras["Extras&lt;br/&gt;扩展预留"]
-
-    Browser --&gt;|"/api/*"| Proxy
-    Proxy --&gt; Registry
-    Registry --&gt; Auth
-    Registry --&gt; Storage
-    Registry --&gt; Extras
-</pre>
-
+<pre><code class="language-text">浏览器 (React 18 + TS + Vite)
+    │  /api/*
+    ▼
+Vite Dev Proxy (:5173) → Actix-web (:3001)
+    │
+    ▼
+PluginRegistry
+    ├── Auth Plugin (认证)
+    ├── Storage Plugin (存储)
+    └── Extras (扩展预留)
+</code></pre>
 <p>请求路径：</p>
 <ul>
 <li>浏览器发起 API 请求</li>
@@ -229,36 +225,21 @@
 <li><code>ducia-server</code> 依赖所有 5 个 crate，在启动时按配置组装</li>
 </ul>
 <h2 id="ducia-core-内部模块"><a class="header" href="#ducia-core-内部模块">ducia-core 内部模块</a></h2>
-<pre class="mermaid">flowchart TB
-    lib["lib.rs&lt;br/&gt;公共 API 重新导出"]
-
-    subgraph doc["doc/ 文档模型"]
-        direction LR
-        doc_model["model.rs&lt;br/&gt;DocMeta · DocFull&lt;br/&gt;CreateDocRequest&lt;br/&gt;DocFormat"]
-        doc_repo["repo.rs&lt;br/&gt;DocRepository trait"]
-    end
-
-    subgraph plugin["plugin/ 插件系统"]
-        direction LR
-        p_auth["auth.rs&lt;br/&gt;AuthPlugin trait"]
-        p_registry["registry.rs&lt;br/&gt;PluginRegistry"]
-        p_storage["storage.rs&lt;br/&gt;StoragePlugin"]
-    end
-
-    subgraph perm["perm/ 权限引擎"]
-        perm_model["model.rs&lt;br/&gt;Identity · RoleDef&lt;br/&gt;RoleConfig"]
-    end
-
-    subgraph i18n["i18n/ 国际化"]
-        i18n_mgr["mod.rs&lt;br/&gt;I18nManager"]
-    end
-
-    lib --&gt; doc
-    lib --&gt; plugin
-    lib --&gt; perm
-    lib --&gt; i18n
-</pre>
-
+<pre><code class="language-text">ducia-core/src/
+├── lib.rs          # 公共 API 重新导出
+├── doc/            # 文档模型
+│   ├── model.rs    #   DocMeta, DocFull, CreateDocRequest, DocFormat
+│   └── repo.rs     #   DocRepository trait
+├── plugin/         # 插件系统
+│   ├── auth.rs     #   AuthPlugin trait
+│   ├── registry.rs #   PluginRegistry (builder pattern)
+│   └── storage.rs  #   StoragePlugin = Box&lt;dyn DocRepository&gt;
+├── perm/           # 权限引擎
+│   └── model.rs    #   Identity, RoleDef, RoleConfig
+└── i18n/           # 国际化
+    └── mod.rs      #   I18nManager
+</code></pre>
+<p>lib.rs 负责重新导出所有公开类型，是 crate 的唯一入口。</p>
 <h2 id="插件注册表pluginregistry"><a class="header" href="#插件注册表pluginregistry">插件注册表（PluginRegistry）</a></h2>
 <p><code>PluginRegistry</code> 采用 <strong>builder 模式</strong>在启动时组装：</p>
 <pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
@@ -418,7 +399,6 @@ export default defineConfig({
         <script src="book-a0b12cfe.js"></script>
 
         <!-- Custom JS scripts -->
-        <script src="mermaid-init-27cb93de.js"></script>
 
 
 

@@ -14,62 +14,33 @@
 
 ## 项目结构
 
-```mermaid
-flowchart TB
-    subgraph src["src/ 前端源码"]
-        main["main.tsx<br/>入口：挂载App，包裹I18nProvider"]
-        app["App.tsx<br/>单页路由分发"]
-
-        subgraph comp["components/ 可复用UI组件"]
-            Header["Header.tsx<br/>列表页顶栏"]
-            DocHeader["DocHeader.tsx<br/>文档页顶栏"]
-            DocItem["DocItem.tsx<br/>文档列表项（支持预加载）"]
-            DocFooter["DocFooter.tsx<br/>文档操作栏（弃用/删除）"]
-            DeprecatedBanner["DeprecatedBanner.tsx<br/>弃用横幅"]
-        end
-
-        subgraph pgs["pages/ 页面级组件"]
-            Listing["Listing.tsx<br/>文档列表页"]
-            DocPage["DocPage.tsx<br/>文档阅读页"]
-            AdminPage["AdminPage.tsx<br/>管理认证页"]
-        end
-
-        subgraph hks["hooks/ React Hooks"]
-            useAdmin["useAdmin.ts<br/>管理员认证状态"]
-            useCats["useCats.ts<br/>文档列表数据"]
-            useDoc["useDoc.ts<br/>单文档操作"]
-            useI18n["useI18n.tsx<br/>国际化（含I18nProvider）"]
-            useStickyHeader["useStickyHeader.ts<br/>吸顶顶栏"]
-            useUpload["useUpload.ts<br/>文件上传"]
-        end
-
-        subgraph typs["types/"]
-            types_def["TypeScript 类型定义"]
-        end
-
-        subgraph utls["utils/ 工具函数"]
-            prefetch["prefetch.ts<br/>预加载缓存"]
-            download["download.ts<br/>文档下载"]
-        end
-
-        subgraph stys["styles/ 全局样式"]
-            tokens["tokens.css<br/>设计令牌"]
-            global_css["global.css<br/>全局重置与布局"]
-            md_css["markdown.css<br/>Markdown渲染样式"]
-        end
-
-        subgraph wsm["wasm/"]
-            wasm_mod["WASM模块（构建产物副本）"]
-        end
-    end
-
-    main --> app
-    app --> comp
-    app --> pgs
-    pgs --> hks
-    pgs --> utls
-    pgs --> typs
-    main --> stys
+```text
+src/
+├── main.tsx                  # 入口
+├── App.tsx                   # 路由分发
+├── components/               # UI 组件
+│   ├── Header.tsx
+│   ├── DocHeader.tsx
+│   ├── DocItem.tsx
+│   ├── DocFooter.tsx
+│   └── DeprecatedBanner.tsx
+├── pages/                    # 页面
+│   ├── Listing.tsx
+│   ├── DocPage.tsx
+│   └── AdminPage.tsx
+├── hooks/                    # Hooks
+│   ├── useAdmin.ts
+│   ├── useCats.ts
+│   ├── useDoc.ts
+│   ├── useI18n.tsx
+│   ├── useStickyHeader.ts
+│   └── useUpload.ts
+├── types/                    # TypeScript 类型
+├── utils/                    # 工具函数
+├── styles/                   # 全局样式
+├── views/                    # 视图注册表
+├── rendering/                # 格式注册表
+└── wasm/                     # WASM 模块
 ```
 
 ## 路由设计

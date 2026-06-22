@@ -27,4 +27,8 @@
 - [开发环境](./development.md)
 - [WASM 构建](./wasm.md)
 
+# 部署
+
+- [服务器部署](./deployment.md)
+
 [变更日志](./changelog.md)

@@ -35,10 +35,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-4568314d.js";
+            window.path_to_searchindex_js = "searchindex-003bed1d.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-df4d3453.js"></script>
+        <script src="toc-9fa0b557.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -183,23 +183,15 @@
                         <h1 id="国际化i18n"><a class="header" href="#国际化i18n">国际化（i18n）</a></h1>
 <p>Ducia 的国际化设计遵循<strong>零硬编码</strong>原则：所有用户可见文本从 JSON 语言包加载，前后端统一使用键查找翻译。</p>
 <h2 id="设计概览"><a class="header" href="#设计概览">设计概览</a></h2>
-<pre class="mermaid">sequenceDiagram
-    participant Browser
-    participant Frontend
-    participant Backend
-    participant Config as config/i18n/
-
-    Browser-&gt;&gt;Frontend: 加载页面 (Accept-Language: en)
-    Frontend-&gt;&gt;Backend: GET /api/locales
-    Backend-&gt;&gt;Config: 扫描 config/i18n/*.json
-    Backend--&gt;&gt;Frontend: [{code: "en", name: "English"}, ...]
-    Frontend-&gt;&gt;Frontend: resolveInitialLocale() → "en"
-    Frontend-&gt;&gt;Backend: GET /api/locales/en
-    Backend-&gt;&gt;Config: 读取 en.json
-    Backend--&gt;&gt;Frontend: {"site.title": "...", ...}
-    Frontend-&gt;&gt;Frontend: t("site.title") → "25 ECE 3 Todo List"
-</pre>
-
+<pre><code class="language-text">1. 前端 GET /api/locales → 后端扫描 config/i18n/*.json
+2. 后端返回可用语言列表 [{code, name}, ...]
+3. 前端 resolveInitialLocale() 解析首选语言
+   - sessionStorage 中的用户选择
+   - 浏览器 Accept-Language 请求头
+   - fallback 到默认语言
+4. 前端 GET /api/locales/{locale} → 后端返回对应语言包
+5. 组件通过 t('key') 查表翻译
+</code></pre>
 <p>核心流程：</p>
 <ol>
 <li>前端从后端获取可用语言列表</li>
@@ -482,7 +474,6 @@ cp config/i18n/en.json config/i18n/ja.json
         <script src="book-a0b12cfe.js"></script>
 
         <!-- Custom JS scripts -->
-        <script src="mermaid-init-27cb93de.js"></script>
 
 
 

@@ -4,17 +4,17 @@ Ducia 的存储层通过 `DocRepository` trait 抽象，支持即插即用的后
 
 ## 架构概览
 
-```mermaid
-flowchart TD
-    A[HTTP Handler] --> B[PluginRegistry]
-    B --> C[StoragePlugin]
-    C --> D[DocRepository trait]
-    D --> E[storage-fs]
-    D --> F[storage-sqlite]
-    D --> G[自定义后端]
-
-    E --> H[(config/docs.json + docs/*.md)]
-    F --> I[(data/ducia.db)]
+```text
+HTTP Handler
+    │
+    ▼
+PluginRegistry
+    │
+    ▼
+StoragePlugin (DocRepository trait)
+    ├── storage-fs ──→ config/docs.json + docs/*.md
+    ├── storage-sqlite ──→ data/ducia.db
+    └── 自定义后端
 ```
 
 所有 HTTP handler 通过 `PluginRegistry` 获取存储插件，调用 `DocRepository` trait 定义的方法。框架不感知底层是文件系统还是数据库。

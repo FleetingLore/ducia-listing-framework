@@ -70,6 +70,38 @@ http://localhost:5173
 
 ---
 
+## Docker 部署
+
+如果不想安装 Rust / Node.js，直接用 Docker：
+
+```bash
+# 构建并启动（首次构建约 5-10 分钟）
+docker compose up -d
+
+# 浏览器打开 http://localhost:3001
+```
+
+`Dockerfile` 分三个阶段：
+
+1. **frontend**：`node:20-alpine` 构建 `npm run build` → `dist/`
+2. **backend**：`rust:1.80-alpine` 编译 `cargo build --release` → 二进制
+3. **runtime**：`alpine:3.20` 仅复制产物，镜像体积最小
+
+`docker-compose.yml` 将 `config/`、`docs/`、`data/` 挂载到宿主机：
+- 修改配置文件后 `docker compose restart` 生效
+- 上传的文档保留在 `docs/`，容器重建不丢失
+- SQLite 数据文件在 `data/`
+
+生产环境下后端同时 serve 前端静态文件（通过 `actix-files`），不再需要 Vite dev server。
+
+停止：
+
+```bash
+docker compose down
+```
+
+---
+
 ## 分步启动
 
 如果需要单独启动后端或前端：
@@ -175,61 +207,19 @@ npm install -D eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin
 
 ## 项目布局
 
-```mermaid
-flowchart TB
-    subgraph root["ducia-listing-framework/"]
-        subgraph cfg["config/ 运行时配置"]
-            auth["auth.json<br/>JWT密钥与用户存储配置"]
-            roles["roles.json<br/>动态角色→权限映射"]
-            seq["sequence.json<br/>序列码认证配置"]
-            settings["settings.json<br/>功能开关"]
-            i18n["i18n/<br/>语言资源文件"]
-        end
-
-        subgraph be["backend/ 后端"]
-            subgraph core["ducia-core/ 框架核心"]
-                traits["trait定义<br/>DocStorage, AuthProvider…"]
-            end
-
-            subgraph plugins["plugins/ 插件"]
-                auth_simple["auth-simple/<br/>序列码认证插件"]
-                auth_db["auth-db/<br/>JWT+数据库认证插件"]
-                storage_fs["storage-fs/<br/>文件系统存储插件"]
-                storage_sqlite["storage-sqlite/<br/>SQLite存储插件"]
-            end
-
-            srv["server/<br/>Actix-web入口<br/>路由、中间件、启动"]
-            wasm_be["wasm/<br/>WASM共享逻辑<br/>Markdown渲染、序列验证"]
-        end
-
-        subgraph fe["src/ 前端源码"]
-            main_tsx["main.tsx 入口"]
-            app_tsx["App.tsx 路由分发"]
-            comp_fe["components/ UI组件"]
-            pgs_fe["pages/ 页面"]
-            hks_fe["hooks/ React Hooks"]
-            typs_fe["types/ TypeScript类型"]
-            utls_fe["utils/ 工具函数"]
-            stys_fe["styles/ 全局样式"]
-            wasm_fe["wasm/ WASM模块副本"]
-        end
-
-        subgraph tools["工具与文档"]
-            scripts["scripts/<br/>开发与部署脚本<br/>run-dev.sh, stop-dev.sh…"]
-            book_dir["book/<br/>mdBook文档源码"]
-        end
-
-        public["public/ 静态资源"]
-        data["data/ 运行时数据（SQLite）"]
-        docs["docs/ 文档内容（Markdown）"]
-        dist["dist/ 前端生产构建产物"]
-        be_src["backend/src/ 后端共享工具代码"]
-
-        vite["vite.config.js"]
-        tsconfig["tsconfig.json"]
-        package["package.json"]
-        cargo["Cargo.toml"]
-    end
+```text
+ducia-listing-framework/
+├── config/          # 运行时配置
+├── backend/         # 后端
+│   ├── ducia-core/  # 框架核心
+│   ├── plugins/     # 插件
+│   ├── server/      # 入口
+│   └── wasm/        # WASM
+├── src/             # 前端源码
+├── public/          # 静态资源
+├── scripts/         # 脚本
+├── book/            # 本书
+└── data/            # 运行时数据
 ```
 
 ### 关键路径说明

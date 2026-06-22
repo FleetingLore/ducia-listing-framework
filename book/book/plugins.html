@@ -35,10 +35,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-4568314d.js";
+            window.path_to_searchindex_js = "searchindex-003bed1d.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-df4d3453.js"></script>
+        <script src="toc-9fa0b557.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -189,31 +189,13 @@
 <li><strong>编译时组合</strong>：插件在 <code>main.rs</code> 编译时注册，非运行时动态加载</li>
 </ul>
 <h2 id="插件架构图"><a class="header" href="#插件架构图">插件架构图</a></h2>
-<pre class="mermaid">graph TD
-    subgraph ducia-core
-        AT[AuthPlugin trait]
-        DR[DocRepository trait]
-        PR[PluginRegistry]
-    end
-
-    subgraph 认证插件
-        AS[auth-simple]
-        AD[auth-db]
-    end
-
-    subgraph 存储插件
-        FS[storage-fs]
-        SS[storage-sqlite]
-    end
-
-    AT -.-&gt; AS
-    AT -.-&gt; AD
-    DR -.-&gt; FS
-    DR -.-&gt; SS
-    PR --&gt; AT
-    PR --&gt; DR
-</pre>
-
+<pre><code class="language-text">ducia-core (trait 定义)
+    ├── AuthPlugin trait ──── → auth-simple (序列码)
+    │                       └── auth-db (JWT + 数据库)
+    ├── DocRepository trait ── → storage-fs (文件系统)
+    │                        └── storage-sqlite (SQLite)
+    └── PluginRegistry (组装所有插件)
+</code></pre>
 <h2 id="authplugin-trait"><a class="header" href="#authplugin-trait">AuthPlugin trait</a></h2>
 <p>定义在 <code>ducia-core/src/plugin/auth.rs</code>，是认证机制的抽象接口：</p>
 <pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
@@ -991,7 +973,6 @@ curl -s -X POST http://127.0.0.1:3001/api/docs \
         <script src="book-a0b12cfe.js"></script>
 
         <!-- Custom JS scripts -->
-        <script src="mermaid-init-27cb93de.js"></script>
 
 
 

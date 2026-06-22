@@ -4,6 +4,7 @@
 //! 通过 config/settings.json 选择存储和认证后端。
 
 use actix_cors::Cors;
+use actix_files as fs;
 use actix_web::{App, HttpServer, web};
 use ducia_auth_db::{AuthConfig, AuthDb};
 use ducia_auth_simple::SimpleAuth;
@@ -127,8 +128,10 @@ async fn main() -> std::io::Result<()> {
                 "/api/locales/{locale}",
                 web::get().to(handlers::i18n::get_locale_pack),
             )
+            // 生产模式：serve 前端静态文件（dist/ 存在时）
+            .service(fs::Files::new("/", base_dir.join("dist")).index_file("index.html"))
     })
-    .bind("127.0.0.1:3001")?
+    .bind("0.0.0.0:3001")?
     .run()
     .await
 }
