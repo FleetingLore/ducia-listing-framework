@@ -1,2 +1,0 @@
-createSrcSidebar('[["ducia",["",[["handlers",[],["admin.rs","delete.rs","deprecated.rs","get.rs","list.rs","mod.rs","upload.rs"]]],["config.rs","db.rs","lib.rs","models.rs"]]]]');
-//{"start":19,"fragment_lengths":[156]}

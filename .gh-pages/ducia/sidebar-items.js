@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["run_server"],"mod":["config","db","handlers","models"],"struct":["AppState"]};

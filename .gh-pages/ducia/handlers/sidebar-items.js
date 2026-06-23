@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"mod":["admin","delete","deprecated","get","list","upload"]};

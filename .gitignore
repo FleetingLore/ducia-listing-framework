@@ -58,3 +58,4 @@ src/wasm/ducia_wasm_bg.wasm.d.ts
 src/wasm/ducia_wasm.d.ts
 public/ducia_wasm_bg.wasm
 **/target/
+.gh-pages/

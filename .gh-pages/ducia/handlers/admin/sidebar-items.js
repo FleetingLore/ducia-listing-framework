@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["check_session","create_session","destroy_session","get_sequence"]};
