@@ -7,6 +7,7 @@
     "doc.status.loading": "加载中...",
     "doc.status.empty": "暂无文档，点击上传",
     "doc.status.deprecated": "此文档已弃用",
+    "doc.status.locked": "文档已上锁",
     "doc.status.content_lost": "文档内容丢失",
 
     "doc.action.restore": "恢复",

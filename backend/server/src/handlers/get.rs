@@ -23,6 +23,7 @@ pub async fn get_cat(path: web::Path<String>, state: web::Data<AppState>) -> imp
                 "content": doc.content,
                 "created_at": doc.created_at,
                 "deprecated": doc.deprecated,
+                "locked": doc.locked,
             }
         })),
         Ok(None) => HttpResponse::NotFound().json(serde_json::json!({

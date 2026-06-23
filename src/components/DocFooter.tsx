@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useI18n } from "../hooks/useI18n";
+import { debugLog } from "../utils/debug";
 import styles from "./DocFooter.module.css";
 
 interface DocFooterProps {
@@ -34,30 +35,52 @@ export default function DocFooter({
         }
     };
 
-    // 非管理员且文档锁定时不能弃用
-    const canDeprecate = !isLocked || isAdmin;
-    // 已弃用且锁定的文档不能恢复
-    const canRestore = isDeprecated && (!isLocked || isAdmin);
-    // 已弃用的文档可以删除
+    const lockedForVisitor = isLocked && !isAdmin;
+    const canDeprecate = !isDeprecated && !lockedForVisitor;
+    const canRestore = isDeprecated && !isLocked;
     const canDelete = isDeprecated && isAdmin;
+
+    debugLog(
+        "DocFooter",
+        "isAdmin:",
+        isAdmin,
+        "isDeprecated:",
+        isDeprecated,
+        "isLocked:",
+        isLocked,
+        "lockedForVisitor:",
+        lockedForVisitor,
+        "canDeprecate:",
+        canDeprecate,
+        "canRestore:",
+        canRestore,
+        "canDelete:",
+        canDelete,
+    );
 
     return (
         <div className={styles.footer}>
             {/* 锁定按钮（仅管理员可见） */}
             {isAdmin && (
-                <button className={styles.action} onClick={onLock}>
-                    {isLocked ? "🔒 " : "🔓 "}
+                <button className={styles.actionLock} onClick={onLock}>
                     {isLocked ? t("doc.action.unlock") : t("doc.action.lock")}
                 </button>
             )}
 
+            {/* 访客看到的锁定提示 */}
+            {lockedForVisitor && !isDeprecated && (
+                <span className={styles.lockedLabel}>
+                    {t("doc.status.locked")}
+                </span>
+            )}
+
             {/* 弃用/恢复按钮 */}
-            {!isDeprecated && canDeprecate && (
+            {canDeprecate && (
                 <button className={styles.action} onClick={onDeprecate}>
                     {t("doc.action.mark_deprecated")}
                 </button>
             )}
-            {isDeprecated && canRestore && (
+            {canRestore && (
                 <button className={styles.action} onClick={onDeprecate}>
                     {t("doc.action.restore")}
                 </button>
@@ -72,7 +95,8 @@ export default function DocFooter({
                 </button>
             )}
 
-            {isDeprecated && !isAdmin && !canRestore && <div />}
+            {/* 占位 */}
+            {isDeprecated && !canRestore && !canDelete && <div />}
             <div className={styles.date}>
                 {new Date(createdAt).toLocaleString()}
             </div>

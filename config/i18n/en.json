@@ -7,6 +7,7 @@
     "doc.status.loading": "Loading...",
     "doc.status.empty": "No documents yet, click upload",
     "doc.status.deprecated": "This document is deprecated",
+    "doc.status.locked": "Document locked",
     "doc.status.content_lost": "Document content lost",
 
     "doc.action.restore": "Restore",

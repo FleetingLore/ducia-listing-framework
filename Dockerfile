@@ -1,5 +1,5 @@
 # ═══ Stage 1: 构建前端 ═══
-FROM docker.m.daocloud.io/library/node:20-alpine AS frontend
+FROM node:20-alpine AS frontend
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
@@ -9,7 +9,7 @@ COPY src/ src/
 RUN npm run build
 
 # ═══ Stage 2: 构建后端 ═══
-FROM docker.m.daocloud.io/library/rust:1.88-alpine AS backend
+FROM rust:1.88-alpine AS backend
 RUN apk add --no-cache musl-dev pkgconfig openssl-dev
 WORKDIR /app
 COPY backend/ backend/
@@ -17,7 +17,7 @@ WORKDIR /app/backend/server
 RUN cargo build --release
 
 # ═══ Stage 3: 运行时 ═══
-FROM docker.m.daocloud.io/library/alpine:3.20
+FROM alpine:3.20
 RUN apk add --no-cache ca-certificates tzdata
 WORKDIR /app
 

@@ -41,7 +41,6 @@ curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 项目提供开发脚本，同时启动后端和前端：
 
 ```bash
-# 在项目根目录执行
 ./scripts/run-dev.sh
 ```
 
@@ -54,13 +53,7 @@ curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 5. 等待后端就绪（探测 `http://127.0.0.1:3001/api/locales`）
 6. 启动前端：`npm run dev`
 
-> 按 `Ctrl+C` 停止时，脚本会通过 trap 自动清理后端进程。
-
-浏览器访问：
-
-```
-http://localhost:5173
-```
+> 按 `Ctrl+C` 停止时，脚本会通过 trap 自动清理后端进程。浏览器访问 `http://localhost:5173`。
 
 ### 停止开发服务
 
@@ -75,9 +68,7 @@ http://localhost:5173
 如果不想安装 Rust / Node.js，直接用 Docker：
 
 ```bash
-# 构建并启动（首次构建约 5-10 分钟）
 docker compose up -d
-
 # 浏览器打开 http://localhost:3001
 ```
 
@@ -87,12 +78,9 @@ docker compose up -d
 2. **backend**：`rust:1.88-alpine` 编译 `cargo build --release` → 二进制
 3. **runtime**：`alpine:3.20` 仅复制产物，镜像体积最小
 
-`docker-compose.yml` 将 `config/`、`docs/`、`data/` 挂载到宿主机：
-- 修改配置文件后 `docker compose restart` 生效
-- 上传的文档保留在 `docs/`，容器重建不丢失
-- SQLite 数据文件在 `data/`
+`docker-compose.yml` 将 `config/`、`docs/`、`data/` 挂载到宿主机：修改配置文件后 `docker compose restart` 生效；上传的文档保留在 `docs/`，容器重建不丢失。
 
-生产环境下后端通过 catch-all 路由 `/{tail:.*}` 同时 serve 前端静态文件（先匹配精确文件，失败返回 `index.html`），不再需要 Vite dev server。
+生产环境下后端通过 catch-all 路由 `/{tail:.*}` 同时 serve 前端静态文件（先匹配精确文件，失败返回 `index.html`）。
 
 停止：
 
@@ -104,8 +92,6 @@ docker compose down
 
 ## 分步启动
 
-如果需要单独启动后端或前端：
-
 ### 启动后端
 
 ```bash
@@ -113,95 +99,72 @@ cd backend/server
 cargo run
 ```
 
-后端监听 `http://127.0.0.1:3001`。
-
-首次运行会：
-
-- 创建 `config/` 目录及默认配置文件
-- 创建 `data/` 目录（SQLite 数据存放）
-- 自动迁移数据库表
+后端监听 `http://127.0.0.1:3001`。首次运行会创建 `config/`、`data/` 目录并自动迁移数据库表。
 
 ### 启动前端
 
 ```bash
-# 在项目根目录执行
 npm run dev
 ```
 
 Vite 开发服务器监听 `http://localhost:5173`，API 请求自动代理到后端。
 
-### 生产构建
+---
+
+## 快速重建（修改代码后）
 
 ```bash
-npm run build     # 构建到 dist/
-npm run preview   # 预览构建产物
+npm run build
+cd backend/server && cargo test && cargo build --release && cd ../..
+lsof -ti :3001 | xargs kill -9
+DUCIA_DEBUG=true ./backend/target/release/ducia-server &
 ```
+
+> ⚠️ 后端二进制在 `backend/target/release/`（workspace 根），不是 `backend/server/target/`。`lsof -ti :3001` 按端口杀进程比 `pkill` 更可靠。重启后 `curl -s http://localhost:3001/ | grep "index.*js"` 确认 hash 变了——没变是浏览器缓存，Cmd+Shift+R 硬刷新。
+
+---
+
+## 调试模式
+
+环境变量 `DUCIA_DEBUG=true` 同时控制前后端日志，**无需改 URL 或浏览器设置**：
+
+```bash
+DUCIA_DEBUG=true ./backend/target/release/ducia-server &    # 调试
+./backend/target/release/ducia-server &                      # 正常（生产）
+```
+
+| 模式 | 终端输出 | 浏览器控制台 |
+|------|---------|------------|
+| `DUCIA_DEBUG=true` | 每条 HTTP 请求的 method + path + 状态码 | `[debug] DocFooter isAdmin: ...` 组件状态 |
+| 默认 | 仅启动信息 | 无输出 |
+
+**原理**：服务端启动时读 `DUCIA_DEBUG`，若为 `true` 则在 `index.html` 中注入 `<script>window.__DUCIA_DEBUG=true</script>`。前端 `debugLog()` 检查此标记。不开启时零开销。
+
+---
+
+## 后端测试
+
+```bash
+cd backend/server && cargo test
+```
+
+当前 6 个测试用例（创建、弃用/恢复、锁定、软删除）。测试失败则后续 `cargo build --release` 不会执行。新增功能应同步补测试。
 
 ---
 
 ## WASM 构建
 
-仅修改 `backend/wasm/src/lib.rs` 时才需要重新构建 WASM：
+仅修改 `backend/wasm/src/lib.rs` 时才需要：
 
 ```bash
 cd backend/wasm
 wasm-pack build --target web
+cp pkg/*.js ../../src/wasm/
+cp pkg/*.wasm ../../public/
+cp pkg/*.d.ts ../../src/wasm/
 ```
 
-构建产物输出到 `backend/wasm/pkg/`，包含：
-
-- `ducia_wasm.js` — JS 胶水代码
-- `ducia_wasm_bg.wasm` — WebAssembly 二进制
-- `ducia_wasm.d.ts` — TypeScript 类型声明
-
-然后需要将产物复制到前端：
-
-```bash
-# 从项目根目录
-cp backend/wasm/pkg/*.js   src/wasm/
-cp backend/wasm/pkg/*.wasm public/
-cp backend/wasm/pkg/*.d.ts src/wasm/
-```
-
-详见 [WASM 构建](./wasm.md) 章节。
-
----
-
-## 运行测试
-
-### 后端测试
-
-```bash
-# 运行所有 crate 的测试
-cd backend/server
-cargo test --workspace
-
-# 仅运行 ducia-core 核心库测试
-cargo test -p ducia-core
-
-# 运行特定插件的测试
-cargo test -p ducia-storage-fs
-cargo test -p ducia-storage-sqlite
-cargo test -p ducia-auth-db
-```
-
-### 前端类型检查
-
-由于前端使用 `tsconfig.json` 中的 `"noEmit": true`，编译仅做类型检查：
-
-```bash
-npx tsc --noEmit
-```
-
-该命令检查全部 `src/` 目录下的 TypeScript 类型正确性。
-
-### 前端 Lint（可选）
-
-项目未集成 ESLint，但 TypeScript `strict: true` 已提供较强的编译期检查。如需更多检查，可配置：
-
-```bash
-npm install -D eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin
-```
+详见 [WASM 构建](./wasm.md)。
 
 ---
 
@@ -210,13 +173,13 @@ npm install -D eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin
 新功能开发遵循 Feature Branch 模式：
 
 ```
-main ◄── indev ◄── feature/xxx
+main ←── indev ←── feature/xxx
   │        │           │
   │        │    开发 + 本地测试
   │        │           │
-  │        │    merge 回 indev ← 在 Docker 环境验证
+  │        │    merge 回 indev → 服务器 Docker 验证
   │        │
-  │    merge 回 main ← 生产就绪
+  │    merge 回 main → 打 tag 发布
 ```
 
 ### 操作步骤
@@ -224,44 +187,36 @@ main ◄── indev ◄── feature/xxx
 ```bash
 # 1. 从 indev 开分支
 git checkout indev
-git checkout -b feature/doc-lock
+git checkout -b feature/xxx
 
-# 2. 开发 + 本地测试
-cargo check         # 后端编译
-npm run build       # 前端编译
-docker compose up   # 完整集成测试
+# 2. 开发 + 测试
+cargo test && npm run build
 
-# 3. 测试通过后合回 indev
+# 3. 合回 indev
 git checkout indev
-git merge feature/doc-lock
+git merge feature/xxx
 git push origin indev
 
 # 4. indev 跑稳后合回 main
 git checkout main
 git merge indev
-git tag v0.2.0
+git tag v0.3.0
 git push origin main --tags
 ```
 
-### 原则
-
-- 一个分支只做一个功能，不改杂事
-- `cargo check` + `npm run build` 通过才能 merge
-- 合回 indev 后在服务器 Docker 上跑一遍再合 main
+原则：一个分支一个功能。`cargo test` + `npm run build` 通过才能 merge。
 
 ---
 
 ## 脚本参考
 
-`scripts/` 目录下的工具脚本说明：
-
 | 脚本 | 用途 | 何时用 |
 |------|------|--------|
 | `run-dev.sh` | 一键启动后端 + 前端开发服务器 | 日常开发 |
 | `stop-dev.sh` | 停止 `run-dev.sh` 启动的后端进程 | 开发结束 |
-| `setup_dev_env.sh` | 检查 Rust/Node 等工具是否安装；加 `--install` 自动装（macOS） | 首次搭建环境 |
-| `git-hooks/install.sh` | 安装 git pre-push hook（push 前自动编译检查） | 可选，建议开启 |
-| `git-hooks/pre-push` | push 前构建前端 + `cargo check` 后端 | 由 hook 自动触发 |
+| `setup_dev_env.sh` | 检查 Rust/Node 等工具；加 `--install` 自动装（macOS） | 首次搭建环境 |
+| `git-hooks/install.sh` | 安装 git pre-push hook | 可选 |
+| `git-hooks/pre-push` | push 前自动编译检查 | 由 hook 触发 |
 
 ---
 
@@ -278,33 +233,26 @@ ducia-listing-framework/
 ├── src/             # 前端源码
 ├── public/          # 静态资源
 ├── scripts/         # 脚本
-├── book/            # 本书
+├── book/            # 开发手册
 └── data/            # 运行时数据
 ```
 
-### 关键路径说明
-
 | 路径 | 用途 |
 |------|------|
-| `config/` | 所有配置文件。修改后**重启后端**生效 |
-| `docs/` | Markdown 文档存放目录。上传/创建的文档写入此处 |
-| `data/` | SQLite 数据库文件。使用 `storage-sqlite` 时创建 |
-| `public/` | Vite 的静态资源根目录。WASM 二进制放于此 |
-| `src/wasm/` | WASM JS 胶水代码副本。前端 import 的来源 |
+| `config/` | 所有配置文件，修改后重启后端生效 |
+| `docs/` | Markdown 文档存放目录，上传的文档写入此处 |
+| `data/` | SQLite 数据库文件，`storage-sqlite` 使用 |
 
 ---
 
 ## 配置切换
 
-Ducia 通过 `config/` 目录下的 JSON 文件控制运行时行为：
-
 | 场景 | 操作 |
 |------|------|
-| 启用 SQLite 存储 | 编辑 `config/settings.json`，设 `"use_database": true` |
+| 启用 SQLite 存储 | `config/settings.json` 设 `"use_database": true` |
 | 回退序列码认证 | 删除 `config/auth.json` |
 | 自定义角色权限 | 编辑 `config/roles.json` |
-| 添加新语言 | 在 `config/i18n/` 中新增 `{locale}.json` |
-| 修改序列码 | 编辑 `config/sequence.json` |
+| 添加新语言 | `config/i18n/` 中新增 `{locale}.json` |
 
 ---
 
@@ -313,31 +261,19 @@ Ducia 通过 `config/` 目录下的 JSON 文件控制运行时行为：
 ### 后端启动失败
 
 ```bash
-# 检查日志
 cat logs/backend.log
-
-# 常见原因：
-# 1. 端口 3001 被占用 → lsof -i :3001
-# 2. config 目录权限不足 → chmod -R 755 config/
-# 3. Rust 版本过旧 → rustup update
+# 常见原因：端口 3001 被占用、config 权限不足、Rust 版本过旧
+lsof -i :3001
 ```
 
 ### 前端无法连接后端
 
-确认后端已启动且 Vite 代理配置正确：
-
 ```bash
-# 测试后端健康
 curl http://127.0.0.1:3001/api/locales
 ```
 
 ### TypeScript 类型错误
 
 ```bash
-# 重新安装依赖
-rm -rf node_modules package-lock.json
-npm install
-
-# 重新检查
-npx tsc --noEmit
+rm -rf node_modules package-lock.json && npm install && npx tsc --noEmit
 ```
