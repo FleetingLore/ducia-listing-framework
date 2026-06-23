@@ -113,8 +113,7 @@ docker compose up -d
 
 | 文件 | 用途 |
 |------|------|
-| `ci.yml` | push 时编译检查 + Docker 构建验证 + 手动确认
-|
+| `ci.yml` | push 时编译检查 + Docker 构建验证 + 手动确认|
 | `pages.yml` | mdBook 文档自动部署到 GitHub Pages |
 | `publish.yml` | 推送版本 tag 时自动发布到 crates.io |
 
