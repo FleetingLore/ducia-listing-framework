@@ -13,7 +13,7 @@ FROM rust:1.88-alpine AS backend
 RUN apk add --no-cache musl-dev pkgconfig openssl-dev
 WORKDIR /app
 COPY backend/ backend/
-WORKDIR /app/backend/server
+WORKDIR /app/backend
 RUN cargo build --release
 
 # ═══ Stage 3: 运行时 ═══
@@ -22,7 +22,7 @@ RUN apk add --no-cache ca-certificates tzdata
 WORKDIR /app
 
 # 后端二进制
-COPY --from=backend /app/backend/server/target/release/ducia-server .
+COPY --from=backend /app/backend/target/release/ducia-server .
 
 # 前端产物
 COPY --from=frontend /app/dist/ ./dist/
