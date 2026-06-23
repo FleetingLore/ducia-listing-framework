@@ -82,65 +82,52 @@
 
 ## 本地运行（快速开始）
 
-如果你只是想在本机快速运行并修改代码，下面是最小步骤：
+如果你只是想在本机快速运行并修改代码：
 
-1. 复制本地配置（一次性）：
-
-```bash
-cp scripts/deploy.conf.example scripts/deploy.conf
-```
-
-2. 检查并安装依赖（参考 `scripts/setup_dev_env.sh`）：
+1. 检查并安装依赖：
 
 ```bash
-scripts/setup_dev_env.sh
-# (macOS) scripts/setup_dev_env.sh --install
+./scripts/setup_dev_env.sh
+# (macOS) ./scripts/setup_dev_env.sh --install
 ```
 
-3. 安装前端依赖并构建（或运行开发模式）：
+2. 安装前端依赖并启动开发模式：
 
 ```bash
 npm install
-# 运行开发服务器（前端和后端同时启动）
-./scripts/run-dev.sh
-# 停止后端（如果需要）
-./scripts/stop-dev.sh
+./scripts/run-dev.sh       # 一键启动后端+前端
+./scripts/stop-dev.sh      # 停止
 ```
 
-4. 创建本地配置和日志目录（可选）：
+3. Docker 部署（无需安装 Rust/Node）：
 
 ```bash
-./scripts/init_local.sh
+docker compose up -d
+# 访问 http://localhost:3001
 ```
-
-说明：`./scripts/run-dev.sh` 会在后台以 `cargo run` 启动后端（日志保存在 `logs/backend.log`），并在前台运行 `npm run dev`，方便你在浏览器实时预览更改。
 
 
 ## 在 GitHub Actions 中自动发布（可选）
 
-我们提供了 CI 工作流来在你 `push` 到 `main` 时部署到服务器、在发布 tag/release 时将 crate 发布到 crates.io，以及将 rustdoc 发布到 `gh-pages`：
+三个工作流文件在 `.github/workflows/`：
 
-- `deploy-to-server.yml`：在 push 到 `main` 时将构建产物打包并通过 SSH 部署到远程服务器。需要在仓库 `Settings → Secrets` 中添加下面 Secrets：
-  - `SERVER_HOST` — 服务器地址（例如：175.178.183.209）
-  - `SERVER_USER` — 远程用户名（例如：root）
-  - `SERVER_PORT` — SSH 端口（默认 22）
-  - `SERVER_SSH_KEY` — 私钥内容（PEM 格式）用于 SSH 登录
-  - `SERVER_SSH_PASSPHRASE` — 私钥口令（如果有，可选）
-  - `SERVER_PATH` — 远程项目路径（例如：/root/ducia-local）
+| 文件 | 用途 |
+|------|------|
+| `ci.yml` | push 时编译检查 + Docker 构建验证 + 手动确认
+|
+| `pages.yml` | mdBook 文档自动部署到 GitHub Pages |
+| `publish.yml` | 推送版本 tag 时自动发布到 crates.io |
 
-- `publish-crate.yml`：当你创建 tag（例如 `v0.1.0`）或发布 Release 时，会自动把 `backend` 下的 crate 发布到 crates.io。需要在 `Settings → Secrets` 添加：
-  - `CRATES_IO_TOKEN` — 你的 crates.io API token
+其中 `publish.yml` 需要在 Settings → Secrets 添加：
+- `CRATES_IO_TOKEN` — 你的 crates.io API token
 
-启用自动发布的推荐流程：
-
-1. 在仓库 `Settings → Secrets` 添加上述 Secrets。
-2. 使用 git 打 tag 并 push：
+版本号统一在 `backend/Cargo.toml` 的 `[workspace.package]` 中管理，所有 crate 通过 `version.workspace = true` 继承。发布流程：
 
 ```bash
-git tag v0.1.1
-git push origin v0.1.1
+# 改 backend/Cargo.toml 里的 version，然后
+git tag v0.3.0
+git push origin main
+git push origin v0.3.0
 ```
 
-或者在 GitHub 页面创建一个 Release，工作流会自动运行并发布。
-
-这些改动把与部署相关的配置集中到 `scripts/deploy.conf`，并提供 `Makefile` 与安装脚本，便于其他人快速复现开发环境。
+详见[开发手册 - CI/CD 工作流](https://fleetinglore.github.io/ducia-listing-framework/ci-cd.html)。

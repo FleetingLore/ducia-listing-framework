@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
-set -euo pipefail
-# scripts/stop-dev.sh — stop backend started by run-dev.sh
+# scripts/stop-dev.sh — 停止开发服务器
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+
 if [ -f "$ROOT_DIR/.dev_backend.pid" ]; then
   PID=$(cat "$ROOT_DIR/.dev_backend.pid")
-  echo "Stopping backend (pid: $PID)"
+  echo "停止后端 (PID: $PID)..."
   kill "$PID" 2>/dev/null || true
   rm -f "$ROOT_DIR/.dev_backend.pid"
-  echo "Stopped."
+  echo "✅ 已停止"
 else
-  echo "No .dev_backend.pid found — backend may not be running or started differently."
+  echo "没有运行中的后端进程"
 fi

@@ -1,35 +1,30 @@
-name: Build and publish Rust docs to gh-pages
+name: Build and publish mdBook to gh-pages
 
 on:
-  push:
-    branches: [ main ]
+    push:
+        branches: [main, indev]
+    workflow_dispatch:
 
 jobs:
-  publish-docs:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+    publish-book:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
 
-      - name: Set up Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          profile: minimal
-          override: true
+            - name: Install mdBook
+              run: |
+                  curl -sSL https://github.com/rust-lang/mdBook/releases/download/v0.4.40/mdbook-v0.4.40-x86_64-unknown-linux-gnu.tar.gz | tar -xz
+                  echo "$PWD" >> $GITHUB_PATH
 
-      - name: Build backend docs
-        run: |
-          cd backend
-          cargo doc --no-deps --locked
+            - name: Build book
+              run: mdbook build book
 
-      - name: Deploy to gh-pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./backend/target/doc
-          publish_branch: gh-pages
+            - name: Deploy to gh-pages
+              uses: peaceiris/actions-gh-pages@v3
+              with:
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
+                  publish_dir: ./book/book
+                  publish_branch: gh-pages

@@ -18,9 +18,14 @@ pnpm-debug.log*
 .env
 .env.*
 
-# Rust / Cargo
-/backend/target/
-/target/
+# Rust / Cargo — 所有 target/ 目录
+**/target/
+
+# 自动生成的数据（不提交）
+data/
+
+# mdBook 构建产物（由 Actions 部署，不提交）
+book/book/
 
 # IDEs / editors
 .vscode/
@@ -40,5 +45,15 @@ coverage/
 *.rlib
 *.rmeta
 
-# local
-config/*
+# 本地开发（不提交）
+.backend.pid
+.dev_backend.pid
+logs/
+
+# WASM 构建产物（每次 wasm-pack build 重新生成）
+backend/wasm/pkg/
+src/wasm/ducia_wasm.js
+src/wasm/ducia_wasm_bg.wasm
+src/wasm/ducia_wasm_bg.wasm.d.ts
+src/wasm/ducia_wasm.d.ts
+public/ducia_wasm_bg.wasm
