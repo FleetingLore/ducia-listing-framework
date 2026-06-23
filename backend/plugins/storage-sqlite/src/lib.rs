@@ -35,7 +35,8 @@ impl SqliteStorage {
                 file        TEXT NOT NULL,
                 created_at  INTEGER NOT NULL,
                 deprecated  INTEGER NOT NULL DEFAULT 0,
-                deleted     INTEGER NOT NULL DEFAULT 0
+                deleted     INTEGER NOT NULL DEFAULT 0,
+                locked      INTEGER NOT NULL DEFAULT 0
             );
             CREATE TABLE IF NOT EXISTS settings (
                 key   TEXT PRIMARY KEY,
@@ -43,6 +44,10 @@ impl SqliteStorage {
             );
             INSERT OR IGNORE INTO settings (key, value) VALUES ('site_name', 'Ducia Listing');",
         )?;
+
+        // 迁移：已有表但没有 locked 列时添加
+        let _ =
+            conn.execute_batch("ALTER TABLE docs ADD COLUMN locked INTEGER NOT NULL DEFAULT 0;");
 
         Ok(Self {
             conn: Mutex::new(conn),
@@ -67,7 +72,7 @@ impl DocRepository for SqliteStorage {
     async fn list_docs(&self, _include_deleted: bool) -> anyhow::Result<Vec<DocMeta>> {
         let conn = self.conn.lock().unwrap();
         let mut stmt = conn.prepare(
-            "SELECT id, title, file, created_at, deprecated, deleted
+            "SELECT id, title, file, created_at, deprecated, deleted, locked
              FROM docs WHERE deleted = 0 AND deprecated = 0
              ORDER BY created_at DESC",
         )?;
@@ -80,6 +85,7 @@ impl DocRepository for SqliteStorage {
                 created_at: row.get::<_, i64>(3)? as u64,
                 deprecated: row.get::<_, i64>(4)? != 0,
                 deleted: row.get::<_, i64>(5)? != 0,
+                locked: row.get::<_, i64>(6)? != 0,
             })
         })?;
 
@@ -89,7 +95,7 @@ impl DocRepository for SqliteStorage {
     async fn get_doc(&self, id: &str) -> anyhow::Result<Option<DocFull>> {
         let conn = self.conn.lock().unwrap();
         let mut stmt = conn.prepare(
-            "SELECT id, title, file, created_at, deprecated
+            "SELECT id, title, file, created_at, deprecated, locked
              FROM docs WHERE id = ?1 AND deleted = 0",
         )?;
 
@@ -102,6 +108,7 @@ impl DocRepository for SqliteStorage {
                     created_at: row.get::<_, i64>(3)? as u64,
                     deprecated: row.get::<_, i64>(4)? != 0,
                     deleted: false,
+                    locked: row.get::<_, i64>(5)? != 0,
                 })
             })
             .ok();
@@ -116,6 +123,7 @@ impl DocRepository for SqliteStorage {
                     content,
                     created_at: meta.created_at,
                     deprecated: meta.deprecated,
+                    locked: meta.locked,
                 }))
             }
             None => Ok(None),
@@ -128,7 +136,6 @@ impl DocRepository for SqliteStorage {
         let filename = format!("{}.md", now);
         let content_path = self.docs_dir.join(&filename);
 
-        // 写入文件内容
         std::fs::write(&content_path, &req.content)?;
 
         conn.execute(
@@ -145,6 +152,7 @@ impl DocRepository for SqliteStorage {
             created_at: now,
             deprecated: false,
             deleted: false,
+            locked: false,
         })
     }
 
@@ -153,6 +161,7 @@ impl DocRepository for SqliteStorage {
         id: &str,
         deprecated: Option<bool>,
         deleted: Option<bool>,
+        locked: Option<bool>,
     ) -> anyhow::Result<()> {
         let conn = self.conn.lock().unwrap();
         let id_num = id.parse::<i64>().unwrap_or(0);
@@ -166,6 +175,12 @@ impl DocRepository for SqliteStorage {
         if let Some(v) = deleted {
             conn.execute(
                 "UPDATE docs SET deleted = ?1 WHERE id = ?2",
+                rusqlite::params![v as i64, id_num],
+            )?;
+        }
+        if let Some(v) = locked {
+            conn.execute(
+                "UPDATE docs SET locked = ?1 WHERE id = ?2",
                 rusqlite::params![v as i64, id_num],
             )?;
         }

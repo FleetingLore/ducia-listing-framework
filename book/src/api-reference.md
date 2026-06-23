@@ -245,6 +245,47 @@ curl -X PUT http://127.0.0.1:3001/api/cats/1/deleted \
 
 ---
 
+### `PUT /api/cats/{id}/lock` — 锁定/解锁文档
+
+锁定后非管理员无法弃用或恢复文档。已弃用且锁定的文档不可恢复，但可以删除。
+
+**需要认证**（管理员）。
+
+**路径参数**
+
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `id` | `string` | 文档 ID |
+
+**请求体**
+
+```json
+{
+  "locked": true
+}
+```
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `locked` | `bool` | 是 | `true` 锁定，`false` 解锁 |
+
+**请求示例**
+
+```bash
+curl -X PUT http://127.0.0.1:3001/api/cats/1/lock \
+  -H 'Content-Type: application/json' \
+  -H 'X-Session-Token: <admin-token>' \
+  -d '{"locked":true}'
+```
+
+**响应示例**
+
+```json
+{ "success": true }
+```
+
+---
+
 ## 管理 API
 
 ### `GET /api/admin/sequence` — 获取登录序列
@@ -588,6 +629,7 @@ curl http://127.0.0.1:3001/api/locales/zh-CN
 | `POST` | `/api/cats` | 是 | `doc:write` | 创建文档 |
 | `PUT` | `/api/cats/{id}/deprecated` | 是 | `doc:deprecate` | 切换弃用 |
 | `PUT` | `/api/cats/{id}/deleted` | 是 | `doc:delete` | 软删除 |
+| `PUT` | `/api/cats/{id}/lock` | 是（管理员） | - | 锁定/解锁 |
 | `GET` | `/api/admin/sequence` | 否 | - | 获取登录序列 |
 | `POST` | `/api/admin/session` | 否 | - | 创建管理员会话 |
 | `GET` | `/api/admin/session` | 否 | - | 检查会话 |

@@ -23,12 +23,13 @@ pub trait DocRepository: Send + Sync {
     /// 创建文档
     async fn create_doc(&self, req: CreateDocRequest) -> Result<DocMeta>;
 
-    /// 更新文档元数据（弃用标记等）
+    /// 更新文档元数据（弃用/删除/锁定标记）
     async fn update_meta(
         &self,
         id: &str,
         deprecated: Option<bool>,
         deleted: Option<bool>,
+        locked: Option<bool>,
     ) -> Result<()>;
 
     /// 获取站点名称

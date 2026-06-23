@@ -19,6 +19,9 @@ pub struct DocMeta {
     pub deprecated: bool,
     /// 是否已删除
     pub deleted: bool,
+    /// 是否已锁定（锁定后非管理员不可操作）
+    #[serde(default)]
+    pub locked: bool,
 }
 
 /// 文档完整数据（含内容）
@@ -29,6 +32,7 @@ pub struct DocFull {
     pub content: String,
     pub created_at: u64,
     pub deprecated: bool,
+    pub locked: bool,
 }
 
 /// 创建文档请求
@@ -42,6 +46,12 @@ pub struct CreateDocRequest {
 #[derive(Debug, Deserialize)]
 pub struct DeprecatedRequest {
     pub deprecated: bool,
+}
+
+/// 锁定请求
+#[derive(Debug, Deserialize)]
+pub struct LockRequest {
+    pub locked: bool,
 }
 
 /// 支持的文档格式

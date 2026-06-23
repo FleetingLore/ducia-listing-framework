@@ -98,6 +98,10 @@ async fn main() -> std::io::Result<()> {
                 "/api/cats/{id}/deleted",
                 web::put().to(handlers::delete::delete_cat),
             )
+            .route(
+                "/api/cats/{id}/lock",
+                web::put().to(handlers::lock::set_lock),
+            )
             // 管理 API
             .route(
                 "/api/admin/sequence",

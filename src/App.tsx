@@ -50,6 +50,7 @@ function App() {
             content: "",
             created_at: Date.now(),
             deprecated: false,
+            locked: false,
         });
         try {
             const res = await fetch(`/api/cats/${id}`);
@@ -131,6 +132,16 @@ function App() {
                     });
                     loadDocWithCache(currentDoc.id);
                     loadCats();
+                }}
+                onLock={() => {
+                    fetch(`/api/cats/${currentDoc.id}/lock`, {
+                        method: "PUT",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            locked: !currentDoc.locked,
+                        }),
+                    });
+                    loadDocWithCache(currentDoc.id);
                 }}
                 onDelete={() => {
                     fetch(`/api/cats/${currentDoc.id}/deleted`, {

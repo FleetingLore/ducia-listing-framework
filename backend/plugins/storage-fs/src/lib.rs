@@ -107,6 +107,7 @@ impl DocRepository for FsStorage {
             content,
             created_at: doc.created_at,
             deprecated: doc.deprecated,
+            locked: doc.locked,
         }))
     }
 
@@ -125,6 +126,7 @@ impl DocRepository for FsStorage {
             created_at: Self::now_ms(),
             deprecated: false,
             deleted: false,
+            locked: false,
         };
 
         docs_map.docs.insert(new_id.to_string(), meta.clone());
@@ -139,6 +141,7 @@ impl DocRepository for FsStorage {
         id: &str,
         deprecated: Option<bool>,
         deleted: Option<bool>,
+        locked: Option<bool>,
     ) -> anyhow::Result<()> {
         let mut docs_map = self.load_docs_map();
         if let Some(doc) = docs_map.docs.get_mut(id) {
@@ -147,6 +150,9 @@ impl DocRepository for FsStorage {
             }
             if let Some(v) = deleted {
                 doc.deleted = v;
+            }
+            if let Some(v) = locked {
+                doc.locked = v;
             }
             self.save_docs_map(&docs_map)?;
         }

@@ -205,6 +205,52 @@ npm install -D eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin
 
 ---
 
+## 分支工作流
+
+新功能开发遵循 Feature Branch 模式：
+
+```
+main ◄── indev ◄── feature/xxx
+  │        │           │
+  │        │    开发 + 本地测试
+  │        │           │
+  │        │    merge 回 indev ← 在 Docker 环境验证
+  │        │
+  │    merge 回 main ← 生产就绪
+```
+
+### 操作步骤
+
+```bash
+# 1. 从 indev 开分支
+git checkout indev
+git checkout -b feature/doc-lock
+
+# 2. 开发 + 本地测试
+cargo check         # 后端编译
+npm run build       # 前端编译
+docker compose up   # 完整集成测试
+
+# 3. 测试通过后合回 indev
+git checkout indev
+git merge feature/doc-lock
+git push origin indev
+
+# 4. indev 跑稳后合回 main
+git checkout main
+git merge indev
+git tag v0.2.0
+git push origin main --tags
+```
+
+### 原则
+
+- 一个分支只做一个功能，不改杂事
+- `cargo check` + `npm run build` 通过才能 merge
+- 合回 indev 后在服务器 Docker 上跑一遍再合 main
+
+---
+
 ## 脚本参考
 
 `scripts/` 目录下的工具脚本说明：

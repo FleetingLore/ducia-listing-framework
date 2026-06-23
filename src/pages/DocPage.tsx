@@ -12,6 +12,7 @@ interface DocPageProps {
     isAdmin: boolean;
     onDownload: () => void;
     onDeprecate: () => void;
+    onLock: () => void;
     onDelete: () => void;
     onHome: () => void;
 }
@@ -21,6 +22,7 @@ export default function DocPage({
     isAdmin,
     onDownload,
     onDeprecate,
+    onLock,
     onDelete,
     onHome,
 }: DocPageProps) {
@@ -58,8 +60,10 @@ export default function DocPage({
                     createdAt={doc.created_at}
                     isAdmin={isAdmin}
                     isDeprecated={doc.deprecated}
+                    isLocked={doc.locked}
                     onDelete={onDelete}
                     onDeprecate={onDeprecate}
+                    onLock={onLock}
                 />
             </main>
         </div>
