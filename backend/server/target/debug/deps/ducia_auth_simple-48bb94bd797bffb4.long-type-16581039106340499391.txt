@@ -1,2 +1,0 @@
-Pin<Box<{async block@/Users/corain/RustroverProjects/ducia-listing-framework/backend/plugins/auth-simple/src/lib.rs:57:5: 57:10}>>
-Pin<Box<dyn std::future::Future<Output = Option<ducia_core::Identity>> + Send>>
