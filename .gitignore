@@ -24,6 +24,9 @@ pnpm-debug.log*
 # 自动生成的数据（不提交）
 data/
 
+# mdBook 构建产物（由 Actions 部署，不提交）
+book/book/
+
 # IDEs / editors
 .vscode/
 .idea/
