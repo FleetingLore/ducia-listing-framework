@@ -5,4 +5,5 @@ pub mod deprecated;
 pub mod get;
 pub mod i18n;
 pub mod list;
+pub mod lock;
 pub mod upload;

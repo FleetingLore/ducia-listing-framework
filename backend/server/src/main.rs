@@ -4,7 +4,7 @@
 //! 通过 config/settings.json 选择存储和认证后端。
 
 use actix_cors::Cors;
-use actix_web::{App, HttpResponse, HttpServer, Responder, web};
+use actix_web::{App, HttpResponse, HttpServer, Responder, middleware, web};
 use ducia_auth_db::{AuthConfig, AuthDb};
 use ducia_auth_simple::SimpleAuth;
 use ducia_core::I18nManager;
@@ -79,11 +79,17 @@ async fn main() -> std::io::Result<()> {
 
     let state = web::Data::new(AppState::new(registry, role_config, i18n));
 
+    // 调试模式
+    if std::env::var("DUCIA_DEBUG").unwrap_or_default() == "true" {
+        println!("Debug mode enabled (DUCIA_DEBUG=true)");
+    }
+
     println!("Ducia server on http://127.0.0.1:3001");
 
     HttpServer::new(move || {
         App::new()
             .wrap(Cors::permissive())
+            .wrap(middleware::Logger::new("%s %{METHOD} %{PATH}%{QUERY}"))
             .app_data(state.clone())
             .app_data(web::Data::new(auth_plugin.clone()))
             // 文档 API
@@ -97,6 +103,10 @@ async fn main() -> std::io::Result<()> {
             .route(
                 "/api/cats/{id}/deleted",
                 web::put().to(handlers::delete::delete_cat),
+            )
+            .route(
+                "/api/cats/{id}/lock",
+                web::put().to(handlers::lock::set_lock),
             )
             // 管理 API
             .route(
@@ -161,11 +171,18 @@ async fn spa_fallback(req: actix_web::HttpRequest) -> impl Responder {
         }
     }
 
-    // SPA fallback：返回 index.html
+    // SPA fallback：返回 index.html，调试模式下注入标记
     match tokio::fs::read_to_string(dist_dir.join("index.html")).await {
-        Ok(html) => HttpResponse::Ok()
-            .content_type("text/html; charset=utf-8")
-            .body(html),
+        Ok(html) => {
+            let html = if std::env::var("DUCIA_DEBUG").unwrap_or_default() == "true" {
+                html.replace("<head>", "<head><script>window.__DUCIA_DEBUG=true</script>")
+            } else {
+                html
+            };
+            HttpResponse::Ok()
+                .content_type("text/html; charset=utf-8")
+                .body(html)
+        }
         Err(_) => HttpResponse::NotFound().body("Not Found"),
     }
 }

@@ -24,6 +24,7 @@ export interface DocFull extends DocListItem {
     file: string;
     content: string;
     deprecated: boolean;
+    locked: boolean;
 }
 
 /** 创建文档的请求载荷 */

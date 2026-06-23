@@ -6,7 +6,7 @@ import { useAdmin } from "./hooks/useAdmin";
 import { useCats } from "./hooks/useCats";
 import { useUpload } from "./hooks/useUpload";
 import { downloadDoc } from "./utils/download";
-import { getCachedDoc, prefetchDoc } from "./utils/prefetch";
+import { getCachedDoc, prefetchDoc, clearCache } from "./utils/prefetch";
 import { viewRegistry } from "./views/registry";
 import { registerDefaultViews } from "./views/defaults";
 import { registerDefaultFormats } from "./rendering/defaults";
@@ -20,7 +20,12 @@ registerDefaultFormats();
 function App() {
     const [viewName, setViewName] = useState<string>("loading");
     const [docId, setDocId] = useState<string | null>(null);
-    const { isAdmin, loading: adminLoading, createSession } = useAdmin();
+    const {
+        isAdmin,
+        loading: adminLoading,
+        createSession,
+        destroySession,
+    } = useAdmin();
     const { cats, siteName, loading: catsLoading, loadCats } = useCats();
     const [currentDoc, setCurrentDoc] = useState<DocFull | null>(null);
     const { upload } = useUpload(loadCats);
@@ -50,12 +55,16 @@ function App() {
             content: "",
             created_at: Date.now(),
             deprecated: false,
+            locked: false,
         });
         try {
             const res = await fetch(`/api/cats/${id}`);
             const data: GetCatResponse = await res.json();
             if (data.success && data.data) {
-                setCurrentDoc(data.data);
+                setCurrentDoc({
+                    ...data.data,
+                    locked: data.data.locked ?? false,
+                });
             } else {
                 goHome();
             }
@@ -88,7 +97,11 @@ function App() {
         location.href = "/";
     };
     const goAdmin = () => {
-        location.href = "/listing/lib/0";
+        if (isAdmin) {
+            destroySession();
+        } else {
+            location.href = "/listing/lib/0";
+        }
     };
     const handleAdminSuccess = (token: string) => {
         createSession(token);
@@ -122,15 +135,29 @@ function App() {
                 isAdmin={isAdmin}
                 onDownload={() => downloadDoc(currentDoc)}
                 onDeprecate={() => {
+                    const newVal = !currentDoc.deprecated;
+                    setCurrentDoc({ ...currentDoc, deprecated: newVal });
                     fetch(`/api/cats/${currentDoc.id}/deprecated`, {
                         method: "PUT",
                         headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            deprecated: !currentDoc.deprecated,
-                        }),
+                        body: JSON.stringify({ deprecated: newVal }),
+                    }).then(() => {
+                        clearCache();
+                        loadDocWithCache(currentDoc.id);
+                        loadCats();
                     });
-                    loadDocWithCache(currentDoc.id);
-                    loadCats();
+                }}
+                onLock={() => {
+                    const newVal = !currentDoc.locked;
+                    setCurrentDoc({ ...currentDoc, locked: newVal });
+                    fetch(`/api/cats/${currentDoc.id}/lock`, {
+                        method: "PUT",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ locked: newVal }),
+                    }).then(() => {
+                        clearCache(); // 清除旧缓存，下次加载拉最新数据
+                        loadDocWithCache(currentDoc.id);
+                    });
                 }}
                 onDelete={() => {
                     fetch(`/api/cats/${currentDoc.id}/deleted`, {
