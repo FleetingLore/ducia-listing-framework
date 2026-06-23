@@ -84,7 +84,7 @@ docker compose up -d
 `Dockerfile` 分三个阶段：
 
 1. **frontend**：`node:20-alpine` 构建 `npm run build` → `dist/`
-2. **backend**：`rust:1.80-alpine` 编译 `cargo build --release` → 二进制
+2. **backend**：`rust:1.88-alpine` 编译 `cargo build --release` → 二进制
 3. **runtime**：`alpine:3.20` 仅复制产物，镜像体积最小
 
 `docker-compose.yml` 将 `config/`、`docs/`、`data/` 挂载到宿主机：
@@ -92,7 +92,7 @@ docker compose up -d
 - 上传的文档保留在 `docs/`，容器重建不丢失
 - SQLite 数据文件在 `data/`
 
-生产环境下后端同时 serve 前端静态文件（通过 `actix-files`），不再需要 Vite dev server。
+生产环境下后端通过 catch-all 路由 `/{tail:.*}` 同时 serve 前端静态文件（先匹配精确文件，失败返回 `index.html`），不再需要 Vite dev server。
 
 停止：
 
@@ -173,8 +173,8 @@ cp backend/wasm/pkg/*.d.ts src/wasm/
 
 ```bash
 # 运行所有 crate 的测试
-cd backend
-cargo test
+cd backend/server
+cargo test --workspace
 
 # 仅运行 ducia-core 核心库测试
 cargo test -p ducia-core
@@ -202,6 +202,20 @@ npx tsc --noEmit
 ```bash
 npm install -D eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin
 ```
+
+---
+
+## 脚本参考
+
+`scripts/` 目录下的工具脚本说明：
+
+| 脚本 | 用途 | 何时用 |
+|------|------|--------|
+| `run-dev.sh` | 一键启动后端 + 前端开发服务器 | 日常开发 |
+| `stop-dev.sh` | 停止 `run-dev.sh` 启动的后端进程 | 开发结束 |
+| `setup_dev_env.sh` | 检查 Rust/Node 等工具是否安装；加 `--install` 自动装（macOS） | 首次搭建环境 |
+| `git-hooks/install.sh` | 安装 git pre-push hook（push 前自动编译检查） | 可选，建议开启 |
+| `git-hooks/pre-push` | push 前构建前端 + `cargo check` 后端 | 由 hook 自动触发 |
 
 ---
 

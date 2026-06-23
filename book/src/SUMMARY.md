@@ -25,6 +25,7 @@
 # 开发
 
 - [开发环境](./development.md)
+- [CI / CD 工作流](./ci-cd.md)
 - [WASM 构建](./wasm.md)
 
 # 部署

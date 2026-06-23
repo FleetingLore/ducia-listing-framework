@@ -1,9 +1,9 @@
 [package]
 name = "ducia-server"
-version = "0.2.0"
-edition = "2024"
+version.workspace = true
+edition.workspace = true
 description = "Ducia listing framework server binary"
-license = "MIT"
+license.workspace = true
 publish = false
 
 [[bin]]

@@ -1,10 +1,10 @@
 [package]
 name = "ducia-core"
-version = "0.2.0"
-edition = "2024"
+version.workspace = true
+edition.workspace = true
 description = "Core types, traits and plugin system for the Ducia listing framework"
-license = "MIT"
-repository = "https://github.com/FleetingLore/ducia-listing-framework"
+license.workspace = true
+repository.workspace = true
 readme = "README.md"
 keywords = ["docs", "cms", "plugin", "markdown"]
 categories = ["web-programming"]
